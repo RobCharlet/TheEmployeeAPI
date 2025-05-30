@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Mvc;
+
 var employees = new List<Employee>
 {
-    new Employee { Id = 1, FirstName = "John", LastName = "Doe", SocialSecurityNumber = "123-45-3445" },
+    new Employee { Id = 1, FirstName = "John", LastName = "Doe", SocialSecurityNumber =  "123-45-3445" },
     new Employee { Id = 2, FirstName = "Jane", LastName = "Doe", SocialSecurityNumber = "123-45-3446" }
 };
 
@@ -23,7 +25,18 @@ if (app.Environment.IsDevelopment())
 var employeeRoute = app.MapGroup("/employees");
 
 employeeRoute.MapGet(string.Empty, () => {
-    return employees;
+    return Results.Ok(employees.Select(employee => new GetEmployeeResponse
+    {
+        FirstName = employee.FirstName,
+        LastName = employee.LastName,
+        Address1 = employee.Address1,
+        Address2 = employee.Address2,
+        City = employee.City,
+        State = employee.State,
+        ZipCode = employee.ZipCode,
+        PhoneNumber = employee.PhoneNumber,
+        Email = employee.Email
+     }));
 });
 
 employeeRoute.MapGet("{id:int}", (int id) =>
@@ -33,19 +46,29 @@ employeeRoute.MapGet("{id:int}", (int id) =>
     {
         return Results.NotFound();
     }
-    return Results.Ok(employee);
+
+    return Results.Ok(new GetEmployeeResponse
+    {
+        FirstName = employee.FirstName,
+        LastName = employee.LastName,
+        Address1 = employee.Address1,
+        Address2 = employee.Address2,
+        City = employee.City,
+        State = employee.State,
+        ZipCode = employee.ZipCode,
+        PhoneNumber = employee.PhoneNumber,
+        Email = employee.Email
+    });
 });
 
-employeeRoute.MapPut("{id:int}", (Employee employee, int id) =>
+employeeRoute.MapPut("{id:int}", ([FromBody] UpdateEmployeeRequest employee, int id) =>
 {
     var existingEmployee = employees.SingleOrDefault(e => e.Id == id);
     if (existingEmployee == null)
     {
         return Results.NotFound();
     }
-
-    existingEmployee.FirstName = employee.FirstName;
-    existingEmployee.LastName = employee.LastName;
+    // Update existing employee fields
     existingEmployee.Address1 = employee.Address1;
     existingEmployee.Address2 = employee.Address2;
     existingEmployee.City = employee.City;
@@ -54,13 +77,25 @@ employeeRoute.MapPut("{id:int}", (Employee employee, int id) =>
     existingEmployee.PhoneNumber = employee.PhoneNumber;
     existingEmployee.Email = employee.Email;
 
+    // Return updated employee.
     return Results.Ok(existingEmployee);
 }); 
 
-employeeRoute.MapPost(string.Empty, (Employee employee) => {
+employeeRoute.MapPost(string.Empty, ([FromBody] Employee employee) => {
     employee.Id = employees.Max(e => e.Id) + 1; // We're not using a database, so we need to manually assign an ID
     employees.Add(employee);
-    return Results.Created($"/employees/{employee.Id}", employee);
+    return Results.Created($"/employees/{employee.Id}", new GetEmployeeResponse
+    {
+        FirstName = employee.FirstName,
+        LastName = employee.LastName,
+        Address1 = employee.Address1,
+        Address2 = employee.Address2,
+        City = employee.City,
+        State = employee.State,
+        ZipCode = employee.ZipCode,
+        PhoneNumber = employee.PhoneNumber,
+        Email = employee.Email
+    });
 });
 
 app.UseHttpsRedirection();
