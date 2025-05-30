@@ -45,4 +45,8 @@ app.UseHttpsRedirection();
 
 app.Run();
 
+//Expose internal types from the web app to the test project
+// If not Program' est inaccessible en raison de son niveau de protection in tests.
+public partial class Program { }
+
 
