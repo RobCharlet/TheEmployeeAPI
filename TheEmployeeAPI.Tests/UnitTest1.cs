@@ -30,7 +30,7 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
 
         response.EnsureSuccessStatusCode();
     }
-    
+
     [Fact]
     public async Task CreateEmployee_ReturnsCreatedResult()
     {
@@ -38,7 +38,8 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await client.PostAsJsonAsync("/employees", new Employee
         {
             FirstName = "John",
-            LastName = "Doe"
+            LastName = "Doe",
+            SocialSecurityNumber = "123-45-3445"
         });
 
         response.EnsureSuccessStatusCode();
@@ -48,8 +49,36 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task CreateEmployee_ReturnsBadRequestResult()
     {
         HttpClient client = _factory.CreateClient();
-        var response = await client.PostAsJsonAsync("/employees", new{});
+        var response = await client.PostAsJsonAsync("/employees", new { });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateEmployee_ReturnsOkResults()
+    {
+        HttpClient client = _factory.CreateClient();
+        var response = await client.PutAsJsonAsync("/employees/1", new Employee
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            SocialSecurityNumber = "123-45-3445"
+        });
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task UpdateEmployee_ReturnsNotFoundForNonExistentEmployee()
+    {
+        HttpClient client = _factory.CreateClient();
+        var response = await client.PutAsJsonAsync("/employees/99999", new Employee
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            SocialSecurityNumber = "123-45-3445"
+        });
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
