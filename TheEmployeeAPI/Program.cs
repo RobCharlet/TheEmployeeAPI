@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using TheEmployeeAPI;
 using TheEmployeeAPI.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +15,9 @@ builder.Services.AddSwaggerGen();
 // <IRepository<Employee> => interface
 // EmployeeRepository => concrete class
 builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
+// Standard way to return structured data describing errors from an API.
+// https://datatracker.ietf.org/doc/html/rfc7807
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
@@ -92,9 +97,23 @@ employeeRoute.MapPost(string.Empty, (
     [FromServices] IRepository<Employee> repo,
     [FromBody] CreateEmployeeRequest employeeRequest) => {
 
+    var validationProblems = new List<ValidationResult>();
+    var isValid = Validator.TryValidateObject(
+        employeeRequest,
+        new ValidationContext(employeeRequest),
+        validationProblems,
+        true
+    );
+
+    if (!isValid) {
+        // Pass validationProblems to custom ToValidationProblemDetails extension.
+        return Results.BadRequest(validationProblems.ToValidationProblemDetails());
+    }
+
     var newEmployee = new Employee {
-        FirstName = employeeRequest.FirstName,
-        LastName = employeeRequest.LastName,
+        // We know better than the compiler that FirstName and LastName can't be null.
+        FirstName = employeeRequest.FirstName!,
+        LastName = employeeRequest.LastName!,
         Address1 = employeeRequest.Address1,
         Address2 = employeeRequest.Address2,
         City = employeeRequest.City,
