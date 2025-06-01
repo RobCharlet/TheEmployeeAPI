@@ -1,13 +1,8 @@
-using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 
 public class CreateEmployeeRequest
 {
-    [Required(AllowEmptyStrings = false)]
-    // We set the string nullable because we want to allow the caller to pass in an empty string 
-    // and let the validation logic handle the invalid case, 
-    // as opposed to letting the runtime throw an error.
     public string? FirstName { get; set; }
-    [Required(AllowEmptyStrings = false)]
     public string? LastName { get; set; }
     public string? SocialSecurityNumber { get; set; }
 
@@ -18,4 +13,18 @@ public class CreateEmployeeRequest
     public string? ZipCode { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
+}
+
+public class CreateEmployeeRequestValidator : AbstractValidator<CreateEmployeeRequest>
+{
+    public CreateEmployeeRequestValidator()
+    {
+        RuleFor(x => x.FirstName)
+            .NotEmpty()
+            .WithMessage("First name is required.");
+
+        RuleFor(x => x.LastName)
+            .NotEmpty()
+            .WithMessage("Last name is required.");
+    }
 }

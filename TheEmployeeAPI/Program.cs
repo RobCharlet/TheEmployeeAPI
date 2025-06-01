@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using TheEmployeeAPI;
 using TheEmployeeAPI.Abstractions;
@@ -18,6 +19,8 @@ builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 // Standard way to return structured data describing errors from an API.
 // https://datatracker.ietf.org/doc/html/rfc7807
 builder.Services.AddProblemDetails();
+// This allows us to request an IValidator<CreateEmployeeRequest> from the DI container and get it, no problemo.
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 
@@ -93,21 +96,20 @@ employeeRoute.MapPut("{id:int}", (
     return Results.Ok(existingEmployee);
 });
 
-employeeRoute.MapPost(string.Empty, (
+employeeRoute.MapPost(string.Empty, async (
     [FromServices] IRepository<Employee> repo,
-    [FromBody] CreateEmployeeRequest employeeRequest) => {
+    [FromBody] CreateEmployeeRequest employeeRequest,
+    [FromServices] IValidator<CreateEmployeeRequest> validator
+    ) => {
 
-    var validationProblems = new List<ValidationResult>();
-    var isValid = Validator.TryValidateObject(
-        employeeRequest,
-        new ValidationContext(employeeRequest),
-        validationProblems,
-        true
-    );
+    // Validate the incoming employee request using the injected validator.
+    var validationResults = await validator.ValidateAsync(employeeRequest);
 
-    if (!isValid) {
-        // Pass validationProblems to custom ToValidationProblemDetails extension.
-        return Results.BadRequest(validationProblems.ToValidationProblemDetails());
+    // If validation fails, return a structured validation problem response.
+    if (!validationResults.IsValid) {
+        // This returns a 400 Bad Request with details about which fields failed validation.
+        // ToDictionary converts json validationResults output in c# dictionary output.
+        return Results.ValidationProblem(validationResults.ToDictionary());
     }
 
     var newEmployee = new Employee {
