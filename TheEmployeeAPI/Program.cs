@@ -1,8 +1,11 @@
-using System.ComponentModel.DataAnnotations;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
-using TheEmployeeAPI;
 using TheEmployeeAPI.Abstractions;
+
+var employees = new List<Employee>
+{
+    new Employee { Id = 1, FirstName = "John", LastName = "Doe" },
+    new Employee { Id = 2, FirstName = "Jane", LastName = "Doe" }
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +24,8 @@ builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails();
 // This allows us to request an IValidator<CreateEmployeeRequest> from the DI container and get it, no problemo.
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services.AddControllers();
+
 
 var app = builder.Build();
 
@@ -31,106 +36,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-var employeeRoute = app.MapGroup("/employees");
-
-employeeRoute.MapGet(string.Empty, ([FromServices] IRepository<Employee> repo) => {
-    var employees = repo.GetAll();
-    return Results.Ok(employees.Select(employee => new GetEmployeeResponse
-    {
-        FirstName = employee.FirstName,
-        LastName = employee.LastName,
-        Address1 = employee.Address1,
-        Address2 = employee.Address2,
-        City = employee.City,
-        State = employee.State,
-        ZipCode = employee.ZipCode,
-        PhoneNumber = employee.PhoneNumber,
-        Email = employee.Email
-    }));
-});
-
-employeeRoute.MapGet("{id:int}", ([FromServices] IRepository<Employee> repo, int id) =>
-{
-    var employee = repo.GetById(id);
-    if (employee == null)
-    {
-        return Results.NotFound();
-    }
-
-    return Results.Ok(new GetEmployeeResponse
-    {
-        FirstName = employee.FirstName,
-        LastName = employee.LastName,
-        Address1 = employee.Address1,
-        Address2 = employee.Address2,
-        City = employee.City,
-        State = employee.State,
-        ZipCode = employee.ZipCode,
-        PhoneNumber = employee.PhoneNumber,
-        Email = employee.Email
-    });
-});
-
-employeeRoute.MapPut("{id:int}", (
-    [FromServices] IRepository<Employee> repo,
-    [FromBody] UpdateEmployeeRequest employeeRequest,
-    int id
-    ) =>
-{
-    var existingEmployee = repo.GetById(id);
-    if (existingEmployee == null)
-    {
-        return Results.NotFound();
-    }
-    // Update existing employee fields
-    existingEmployee.Address1 = employeeRequest.Address1;
-    existingEmployee.Address2 = employeeRequest.Address2;
-    existingEmployee.City = employeeRequest.City;
-    existingEmployee.State = employeeRequest.State;
-    existingEmployee.ZipCode = employeeRequest.ZipCode;
-    existingEmployee.PhoneNumber = employeeRequest.PhoneNumber;
-    existingEmployee.Email = employeeRequest.Email;
-
-    repo.Update(existingEmployee);
-    // Return updated employee.
-    return Results.Ok(existingEmployee);
-});
-
-employeeRoute.MapPost(string.Empty, async (
-    [FromServices] IRepository<Employee> repo,
-    [FromBody] CreateEmployeeRequest employeeRequest,
-    [FromServices] IValidator<CreateEmployeeRequest> validator
-    ) => {
-
-    // Validate the incoming employee request using the injected validator.
-    var validationResults = await validator.ValidateAsync(employeeRequest);
-
-    // If validation fails, return a structured validation problem response.
-    if (!validationResults.IsValid) {
-        // This returns a 400 Bad Request with details about which fields failed validation.
-        // ToDictionary converts json validationResults output in c# dictionary output.
-        return Results.ValidationProblem(validationResults.ToDictionary());
-    }
-
-    var newEmployee = new Employee {
-        // We know better than the compiler that FirstName and LastName can't be null.
-        FirstName = employeeRequest.FirstName!,
-        LastName = employeeRequest.LastName!,
-        Address1 = employeeRequest.Address1,
-        Address2 = employeeRequest.Address2,
-        City = employeeRequest.City,
-        State = employeeRequest.State,
-        ZipCode = employeeRequest.ZipCode,
-        PhoneNumber = employeeRequest.PhoneNumber,
-        Email = employeeRequest.Email
-    };
-
-    repo.Create(newEmployee);
-
-    return Results.Created($"/employees/{newEmployee.Id}", newEmployee);
-});
-
 app.UseHttpsRedirection();
+// Add controllers to the middleware.
+app.MapControllers();
 
 app.Run();
 

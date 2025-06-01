@@ -44,7 +44,8 @@ public class EmployeeRepository : IRepository<Employee>
     }
 
     var existingEmployee = GetById(entity.Id);
-    if (existingEmployee != null) {
+    if (existingEmployee != null)
+    {
       existingEmployee.FirstName = entity.FirstName;
       existingEmployee.LastName = entity.LastName;
     }
