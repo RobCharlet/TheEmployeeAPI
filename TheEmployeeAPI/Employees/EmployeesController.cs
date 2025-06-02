@@ -113,12 +113,14 @@ public class EmployeesController : BaseController
   public IActionResult UpdateEmployee(int id, [FromBody] UpdateEmployeeRequest updateEmployeeRequest)
   {
     _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
+
     var existingEmployee = _repository.GetById(id);
     if (existingEmployee == null)
     {
       _logger.LogInformation("Employee with ID: {EmployeeId} not found", id);
       return NotFound();
     }
+
     // Update existing employee fields
     existingEmployee.Address1 = updateEmployeeRequest.Address1;
     existingEmployee.Address2 = updateEmployeeRequest.Address2;
@@ -129,7 +131,7 @@ public class EmployeesController : BaseController
     existingEmployee.Email = updateEmployeeRequest.Email;
 
     _repository.Update(existingEmployee);
-    // Return updated employee.
+    _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
     return Ok(existingEmployee);
   }
 }

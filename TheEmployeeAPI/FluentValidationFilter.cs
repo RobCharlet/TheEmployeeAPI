@@ -63,6 +63,6 @@ public class FluentValidationFilter : IAsyncActionFilter
   }
 
   // Not used, but required by the interface
-  //public void onActionExecuted(ActionExecutedContext context) {}
+  public void onActionExecuted(ActionExecutedContext context) {}
 
 }

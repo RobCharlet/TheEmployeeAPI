@@ -28,6 +28,7 @@ builder.Services.AddControllers(options =>
 {
     options.Filters.Add<FluentValidationFilter>();
 });
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
