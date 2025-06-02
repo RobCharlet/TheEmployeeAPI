@@ -64,17 +64,19 @@ public class EmployeesController : BaseController
     [FromBody] CreateEmployeeRequest employeeRequest
   )
   {
+    // Replaced with the filter FluentValidationFilter.
     // Validate the incoming employee request using the validator generator
     // defined in the controller.
-    var validationResults = await ValidateAsync(employeeRequest);
+    // var validationResults = await ValidateAsync(employeeRequest);
 
-    // If validation fails, return a structured validation problem response.
-    if (!validationResults.IsValid)
-    {
-      // Use custom extension ToModelStateDictionary.
-      return ValidationProblem(validationResults.ToModelStateDictionary());
-    }
+    // // If validation fails, return a structured validation problem response.
+    // if (!validationResults.IsValid)
+    // {
+    //   // Use custom extension ToModelStateDictionary.
+    //   return ValidationProblem(validationResults.ToModelStateDictionary());
+    // }
 
+    await Task.CompletedTask;   //just avoided a compiler error for now
     var newEmployee = new Employee {
         // We know better than the compiler that FirstName and LastName can't be null.
         FirstName = employeeRequest.FirstName!,

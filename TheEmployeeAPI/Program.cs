@@ -24,7 +24,10 @@ builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
 builder.Services.AddProblemDetails();
 // This allows us to request an IValidator<CreateEmployeeRequest> from the DI container and get it, no problemo.
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<FluentValidationFilter>();
+});
 
 var app = builder.Build();
 
