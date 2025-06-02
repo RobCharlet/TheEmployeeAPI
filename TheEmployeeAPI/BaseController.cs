@@ -7,6 +7,8 @@ namespace TheEmployeeAPI;
 
 [ApiController]
 [Route("[controller]")]
+// Will always return "application/json" response.
+[Produces("application/json")]
 public class BaseController : Controller
 {
 

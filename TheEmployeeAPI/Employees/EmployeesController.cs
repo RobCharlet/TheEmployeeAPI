@@ -17,49 +17,72 @@ public class EmployeesController : BaseController
     _logger = logger;
   }
 
+  // XML Comments:
+  /// <summary>
+  /// Get all employees.
+  /// </summary>
+  /// <returns>An array of all employees.</returns>
   [HttpGet]
+  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponse>), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
   public IActionResult GetAllEmployees()
   {
     var employees = _repository.GetAll();
     return Ok(employees.Select(employee => new GetEmployeeResponse
     {
-        // We could use libraries like AutoMapper.
-        FirstName = employee.FirstName,
-        LastName = employee.LastName,
-        Address1 = employee.Address1,
-        Address2 = employee.Address2,
-        City = employee.City,
-        State = employee.State,
-        ZipCode = employee.ZipCode,
-        PhoneNumber = employee.PhoneNumber,
-        Email = employee.Email
+      // We could use libraries like AutoMapper.
+      FirstName = employee.FirstName,
+      LastName = employee.LastName,
+      Address1 = employee.Address1,
+      Address2 = employee.Address2,
+      City = employee.City,
+      State = employee.State,
+      ZipCode = employee.ZipCode,
+      PhoneNumber = employee.PhoneNumber,
+      Email = employee.Email
     }));
   }
 
+  /// <summary>
+  /// Gets an employee by ID.
+  /// </summary>
+  /// <param name="id">The ID of the employee.</param>
+  /// <returns>The single employee record.</returns>
   [HttpGet("{id}")]
+  [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
   public IActionResult GetEmployeeById([FromRoute] int id)
   {
     var employee = _repository.GetById(id);
     if (employee == null)
     {
-        return NotFound();
+      return NotFound();
     }
 
     return Ok(new GetEmployeeResponse
     {
-        FirstName = employee.FirstName,
-        LastName = employee.LastName,
-        Address1 = employee.Address1,
-        Address2 = employee.Address2,
-        City = employee.City,
-        State = employee.State,
-        ZipCode = employee.ZipCode,
-        PhoneNumber = employee.PhoneNumber,
-        Email = employee.Email
+      FirstName = employee.FirstName,
+      LastName = employee.LastName,
+      Address1 = employee.Address1,
+      Address2 = employee.Address2,
+      City = employee.City,
+      State = employee.State,
+      ZipCode = employee.ZipCode,
+      PhoneNumber = employee.PhoneNumber,
+      Email = employee.Email
     });
   }
 
+  /// <summary>
+  /// Creates a new employee.
+  /// </summary>
+  /// <param name="employeeRequest">The employee to be created.</param>
+  /// <returns>A link to the employee that was created.</returns>
   [HttpPost]
+  [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
   public async Task<IActionResult> CreateEmployee(
     [FromBody] CreateEmployeeRequest employeeRequest
   )
@@ -77,23 +100,24 @@ public class EmployeesController : BaseController
     // }
 
     await Task.CompletedTask;   //just avoided a compiler error for now
-    var newEmployee = new Employee {
-        // We know better than the compiler that FirstName and LastName can't be null.
-        FirstName = employeeRequest.FirstName!,
-        LastName = employeeRequest.LastName!,
-        Address1 = employeeRequest.Address1,
-        Address2 = employeeRequest.Address2,
-        City = employeeRequest.City,
-        State = employeeRequest.State,
-        ZipCode = employeeRequest.ZipCode,
-        PhoneNumber = employeeRequest.PhoneNumber,
-        Email = employeeRequest.Email
+    var newEmployee = new Employee
+    {
+      // We know better than the compiler that FirstName and LastName can't be null.
+      FirstName = employeeRequest.FirstName!,
+      LastName = employeeRequest.LastName!,
+      Address1 = employeeRequest.Address1,
+      Address2 = employeeRequest.Address2,
+      City = employeeRequest.City,
+      State = employeeRequest.State,
+      ZipCode = employeeRequest.ZipCode,
+      PhoneNumber = employeeRequest.PhoneNumber,
+      Email = employeeRequest.Email
     };
 
     _repository.Create(newEmployee);
 
-    /**
-      Generate best practive REST response for created ressource
+    /*
+      Generate best practice REST response for created resource
       ex.
         HTTP/1.1 201 Created
         Location: /employees/3
@@ -109,7 +133,17 @@ public class EmployeesController : BaseController
     return CreatedAtAction(nameof(GetEmployeeById), new { id = newEmployee.Id }, newEmployee);
   }
 
+  /// <summary>
+  /// Updates an employee.
+  /// </summary>
+  /// <param name="id">The ID of the employee to update.</param>
+  /// <param name="updateEmployeeRequest">The employee data to update.</param>
+  /// <returns></returns>
   [HttpPut("{id}")]
+  [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
   public IActionResult UpdateEmployee(int id, [FromBody] UpdateEmployeeRequest updateEmployeeRequest)
   {
     _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
