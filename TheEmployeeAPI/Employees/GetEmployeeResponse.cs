@@ -10,4 +10,15 @@ public class GetEmployeeResponse
     public string? ZipCode { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
+
+    public required List<GetEmployeeResponseEmployeeBenefit> Benefits {get; set;}
+}
+
+public class GetEmployeeResponseEmployeeBenefit
+{
+    public int Id { get; set; }
+    public int EmployeeId { get; set; }
+    public BenefitType BenefitType { get; set; }
+
+    public decimal Cost { get; set; }
 }

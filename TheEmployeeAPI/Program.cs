@@ -3,9 +3,36 @@ using TheEmployeeAPI.Abstractions;
 
 var employees = new List<Employee>
 {
-    new Employee { Id = 1, FirstName = "John", LastName = "Doe" },
+    new Employee {
+        Id = 1,
+        FirstName = "John",
+        LastName = "Doe",
+        Benefits = new List<EmployeeBenefits>
+            {
+                new EmployeeBenefits { BenefitType = BenefitType.Health, Cost = 100 },
+                new EmployeeBenefits { BenefitType = BenefitType.Dental, Cost = 50 }
+            }
+    },
     new Employee { Id = 2, FirstName = "Jane", LastName = "Doe" }
 };
+
+var employeeRepository = new EmployeeRepository();
+
+foreach (var employee in employees) {
+    employeeRepository.Create(employee);
+}
+    
+    // repo.Create(new Employee
+// {
+//     FirstName = "John",
+//     LastName = "Doe",
+//     Address1 = "123 Main St",
+//     Benefits = new List<EmployeeBenefits>
+//     {
+//         new EmployeeBenefits { BenefitType = BenefitType.Health, Cost = 100 },
+//         new EmployeeBenefits { BenefitType = BenefitType.Dental, Cost = 50 }
+//     }
+// });
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +49,7 @@ builder.Services.AddSwaggerGen(options =>
 // it's very uncommon to do so. Instead, we should use the interface.
 // <IRepository<Employee> => interface
 // EmployeeRepository => concrete class
-builder.Services.AddSingleton<IRepository<Employee>, EmployeeRepository>();
+builder.Services.AddSingleton<IRepository<Employee>>(employeeRepository);
 // Standard way to return structured data describing errors from an API.
 // https://datatracker.ietf.org/doc/html/rfc7807
 builder.Services.AddProblemDetails();
