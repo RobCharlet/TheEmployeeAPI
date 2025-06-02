@@ -3,7 +3,10 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Moq;
 using TheEmployeeAPI.Abstractions;
+using TheEmployeeAPI.Employees;
 
 namespace TheEmployeeAPI.Tests;
 
@@ -99,5 +102,36 @@ public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
         });
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateEmployee_LogsAndReturnsOkResult()
+    {
+        // Arrange
+        var loggerMock = new Mock<ILogger<EmployeesController>>().SetupAllProperties();
+        var repositoryMock = new Mock<IRepository<Employee>>();
+        var controller = new EmployeesController(repositoryMock.Object, loggerMock.Object);
+
+        var employeeId = 1;
+        var updateRequest = new UpdateEmployeeRequest { City = "East Jarod", State = "Maryland", };
+
+        repositoryMock.Setup(r => r.GetById(employeeId)).Returns(new Employee { Id = employeeId, FirstName = "Test", LastName = "Mock" });
+
+        // Act
+        var result = await Task.Run(() => controller.UpdateEmployee(employeeId, updateRequest));
+
+        // Assert
+        Assert.IsType<OkObjectResult>(result);
+        
+        loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Information,                        // Level
+                It.IsAny<EventId>(),                         // EventId
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains($"Updating employee with ID: {employeeId}")),
+                It.IsAny<Exception>(),                       // Exception
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>() // Formatter
+            ),
+            Times.Once // Or Times.AtLeastOnce()
+        );
     }
 }

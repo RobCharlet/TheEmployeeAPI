@@ -1,5 +1,3 @@
-
-
 using Microsoft.AspNetCore.Mvc;
 using TheEmployeeAPI.Abstractions;
 
@@ -8,12 +6,15 @@ namespace TheEmployeeAPI.Employees;
 public class EmployeesController : BaseController
 {
   private readonly IRepository<Employee> _repository;
+  private readonly ILogger<EmployeesController> _logger;
 
   public EmployeesController(
-    IRepository<Employee> repository
+    IRepository<Employee> repository,
+    ILogger<EmployeesController> logger
   )
   {
     _repository = repository;
+    _logger = logger;
   }
 
   [HttpGet]
@@ -109,10 +110,12 @@ public class EmployeesController : BaseController
   [HttpPut("{id}")]
   public IActionResult UpdateEmployee(int id, [FromBody] UpdateEmployeeRequest updateEmployeeRequest)
   {
+    _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
     var existingEmployee = _repository.GetById(id);
     if (existingEmployee == null)
     {
-        return NotFound();
+      _logger.LogInformation("Employee with ID: {EmployeeId} not found", id);
+      return NotFound();
     }
     // Update existing employee fields
     existingEmployee.Address1 = updateEmployeeRequest.Address1;
