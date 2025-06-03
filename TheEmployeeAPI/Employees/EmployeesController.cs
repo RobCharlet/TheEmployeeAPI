@@ -92,19 +92,6 @@ public class EmployeesController : BaseController
     [FromBody] CreateEmployeeRequest employeeRequest
   )
   {
-    // Replaced with the filter FluentValidationFilter.
-    // Validate the incoming employee request using the validator generator
-    // defined in the controller.
-    // var validationResults = await ValidateAsync(employeeRequest);
-
-    // // If validation fails, return a structured validation problem response.
-    // if (!validationResults.IsValid)
-    // {
-    //   // Use custom extension ToModelStateDictionary.
-    //   return ValidationProblem(validationResults.ToModelStateDictionary());
-    // }
-
-    await Task.CompletedTask;   //just avoided a compiler error for now
     var newEmployee = new Employee
     {
       // We know better than the compiler that FirstName and LastName can't be null.
@@ -120,6 +107,7 @@ public class EmployeesController : BaseController
     };
 
     _dbContext.Employees.Add(newEmployee);
+    await _dbContext.SaveChangesAsync();
 
     /*
       Generate best practice REST response for created resource
@@ -153,7 +141,16 @@ public class EmployeesController : BaseController
   {
     _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
 
-    var existingEmployee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == id);
+    var existingEmployee = await _dbContext.Employees
+      // .Employees.FindAsync(id);
+      // We can turn on ChangeTracking for a specific query
+      .AsTracking()
+      .SingleOrDefaultAsync(e => e.Id == id);
+
+    // We can also turn off the tracking for a specific query
+    // ChangeTracking is turned on to get a little perf for read only
+    //var existingEmployee = await _dbContext.Employees.AsNoTracking();
+
 
     if (existingEmployee == null)
     {
@@ -170,10 +167,26 @@ public class EmployeesController : BaseController
     existingEmployee.PhoneNumber = updateEmployeeRequest.PhoneNumber;
     existingEmployee.Email = updateEmployeeRequest.Email;
 
-    _dbContext.Update(existingEmployee);
-    _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
 
-    return Ok(existingEmployee);
+    try
+    {
+      // Not needed if EF Core ChangeTracker is not disabled or
+      // tracking is enabled locally with .AsTracking().
+      // EF Core will track the state of the objects that are added to the context
+      // https://schneidenbach.github.io/building-apis-with-csharp-and-aspnet-core/lessons/entity-framework-core/adding-and-removing-objects-from-your-database
+      //_dbContext.Entry(existingEmployee).State = EntityState.Modified;
+
+      await _dbContext.SaveChangesAsync();
+      _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
+      return Ok(existingEmployee);
+
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error occurred while updating employee with ID: {EmployeeId}", id);
+        return StatusCode(500, "An error occurred while updating the employee");
+    }
+
   }
 
   /// <summary>

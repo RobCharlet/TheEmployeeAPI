@@ -37,6 +37,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             {
                 var connection = container.GetRequiredService<DbConnection>();
                 options.UseSqlite(connection);
+                // Disable EF Core ChangeTracker
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
             });
 
         });

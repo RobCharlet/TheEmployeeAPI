@@ -25,7 +25,11 @@ builder.Services.AddControllers(options =>
 builder.Services.AddHttpContextAccessor();
 // Inject DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+    {
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+        // Turn off EF Core ChangeTracker
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+    }
 );
 
 var app = builder.Build();

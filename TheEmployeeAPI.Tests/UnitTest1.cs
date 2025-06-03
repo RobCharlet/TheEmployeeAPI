@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -48,7 +48,7 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
 
         response.EnsureSuccessStatusCode();
     }
-/*
+
     [Fact]
     public async Task CreateEmployee_ReturnsCreatedResult()
     {
@@ -94,10 +94,15 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         {
             FirstName = "John",
             LastName = "Doe",
-            Address1 = "123 Main St"
+            Address1 = "123 Main Smoot"
         });
 
         response.EnsureSuccessStatusCode();
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var employee = await db.Employees.FindAsync(1);
+        Assert.Equal("123 Main Smoot", employee?.Address1);
     }
 
     [Fact]
@@ -137,16 +142,29 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
     {
         // Arrange
         var loggerMock = new Mock<ILogger<EmployeesController>>().SetupAllProperties();
-        var repositoryMock = new Mock<AppDbContext>();
-        var controller = new EmployeesController(repositoryMock.Object, loggerMock.Object);
+
+        // Use in-memory database for testing
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: "TestDb_UpdateEmployee")
+            .Options;
+        using var context = new AppDbContext(options);
 
         var employeeId = 1;
+        // Seed the employee
+        context.Employees.Add(new Employee
+        {
+            Id = employeeId,
+            FirstName = "Test",
+            LastName = "Mock"
+        });
+        context.SaveChanges();
+
+        var controller = new EmployeesController(loggerMock.Object, context);
+
         var updateRequest = new UpdateEmployeeRequest { City = "East Jarod", State = "Maryland", };
 
-        repositoryMock.Setup(r => r.GetById(employeeId)).Returns(new Employee { Id = employeeId, FirstName = "Test", LastName = "Mock" });
-
         // Act
-        var result = await Task.Run(() => controller.UpdateEmployee(employeeId, updateRequest));
+        var result = await controller.UpdateEmployee(employeeId, updateRequest);
 
         // Assert
         Assert.IsType<OkObjectResult>(result);
@@ -163,20 +181,19 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         );
     }
     
-    [Fact]
-    public async Task GetBenefitsForEmployee_ReturnsOkResult()
-    {
-        // Act
-        var client = _factory.CreateClient();
-        var response = await client.GetAsync($"/employees/{_employeeId}/benefits");
+    // [Fact]
+    // public async Task GetBenefitsForEmployee_ReturnsOkResult()
+    // {
+    //     // Act
+    //     var client = _factory.CreateClient();
+    //     var response = await client.GetAsync($"/employees/{_employeeId}/benefits");
 
-        // Assert
-        response.EnsureSuccessStatusCode();
+    //     // Assert
+    //     response.EnsureSuccessStatusCode();
         
-        var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
-        Assert.NotNull(benefits);
-        // John has two benefits.
-        Assert.Equal(2, benefits.Count());
-    }
-    */
+    //     var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
+    //     Assert.NotNull(benefits);
+    //     // John has two benefits.
+    //     Assert.Equal(2, benefits.Count());
+    // }
 }
