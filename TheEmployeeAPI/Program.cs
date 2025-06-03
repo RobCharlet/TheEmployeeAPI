@@ -1,4 +1,6 @@
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using TheEmployeeAPI;
 using TheEmployeeAPI.Abstractions;
 
 var employees = new List<Employee>
@@ -60,6 +62,10 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<FluentValidationFilter>();
 });
 builder.Services.AddHttpContextAccessor();
+// Inject DbContext
+builder.Services.AddDbContext<appDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 var app = builder.Build();
 
