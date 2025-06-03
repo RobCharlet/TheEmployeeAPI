@@ -181,6 +181,33 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         );
     }
     
+    [Fact]
+    public async Task DeleteEmployee_ReturnsNoContentResult()
+    {
+        var client = _factory.CreateClient();
+
+        var newEmployee = new Employee { FirstName = "Meow", LastName = "Garita" };
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Employees.Add(newEmployee);
+            await db.SaveChangesAsync();
+        }
+
+        var response = await client.DeleteAsync($"/employees/{newEmployee.Id}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteEmployee_ReturnsNotFoundResult()
+    {
+        var client = _factory.CreateClient();
+        var response = await client.DeleteAsync("/employees/99999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+        
     // [Fact]
     // public async Task GetBenefitsForEmployee_ReturnsOkResult()
     // {
@@ -190,7 +217,7 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
 
     //     // Assert
     //     response.EnsureSuccessStatusCode();
-        
+
     //     var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
     //     Assert.NotNull(benefits);
     //     // John has two benefits.

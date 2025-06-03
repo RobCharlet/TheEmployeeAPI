@@ -80,6 +80,27 @@ public class EmployeesController : BaseController
   }
 
   /// <summary>
+  /// Gets the benefits for an employee.
+  /// </summary>
+  /// <param name="employeeId">The ID to get the benefits for.</param>
+  /// <returns>The single employee record.</returns>
+  [HttpGet("{employeeId}/benefits")]
+  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
+  {
+    var employee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == employeeId);
+
+    if (employee == null)
+    {
+      return NotFound();
+    }
+
+    return Ok(employee.Benefits.Select(BenefitToBenefitResponse));
+  }
+
+  /// <summary>
   /// Creates a new employee.
   /// </summary>
   /// <param name="employeeRequest">The employee to be created.</param>
@@ -189,52 +210,50 @@ public class EmployeesController : BaseController
 
   }
 
-  /// <summary>
-  /// Gets the benefits for an employee.
-  /// </summary>
-  /// <param name="employeeId">The ID to get the benefits for.</param>
-  /// <returns>The single employee record.</returns>
-  [HttpGet("{employeeId}/benefits")]
-  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
+  [HttpDelete("{id}")]
+  [ProducesResponseType(StatusCodes.Status204NoContent)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
+  public async Task<IActionResult> DeleteEmployee(int id)
   {
-    var employee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == employeeId);
+    var employee = await _dbContext.Employees.FindAsync(id);
 
     if (employee == null)
     {
       return NotFound();
     }
 
-    return Ok(employee.Benefits.Select(BenefitToBenefitResponse));
+    _dbContext.Employees.Remove(employee);
+    await _dbContext.SaveChangesAsync();
+
+    return NoContent();
   }
 
   private static GetEmployeeResponse EmployeeToGetEmployeeResponse(Employee employee)
   {
     return new GetEmployeeResponse
     {
-        FirstName = employee.FirstName,
-        LastName = employee.LastName,
-        Address1 = employee.Address1,
-        Address2 = employee.Address2,
-        City = employee.City,
-        State = employee.State,
-        ZipCode = employee.ZipCode,
-        PhoneNumber = employee.PhoneNumber,
-        Email = employee.Email,
-        Benefits = employee.Benefits.Select(BenefitToBenefitResponse).ToList()
+      FirstName = employee.FirstName,
+      LastName = employee.LastName,
+      Address1 = employee.Address1,
+      Address2 = employee.Address2,
+      City = employee.City,
+      State = employee.State,
+      ZipCode = employee.ZipCode,
+      PhoneNumber = employee.PhoneNumber,
+      Email = employee.Email,
+      Benefits = employee.Benefits.Select(BenefitToBenefitResponse).ToList()
     };
-}
+  }
 
-private static GetEmployeeResponseEmployeeBenefit BenefitToBenefitResponse(EmployeeBenefits benefit)
-{
-    return new GetEmployeeResponseEmployeeBenefit
-    {
-        Id = benefit.Id,
-        EmployeeId = benefit.EmployeeId,
-        BenefitType = benefit.BenefitType,
-        Cost = benefit.Cost
-    };
-}
+  private static GetEmployeeResponseEmployeeBenefit BenefitToBenefitResponse(EmployeeBenefits benefit)
+  {
+      return new GetEmployeeResponseEmployeeBenefit
+      {
+          Id = benefit.Id,
+          EmployeeId = benefit.EmployeeId,
+          BenefitType = benefit.BenefitType,
+          Cost = benefit.Cost
+      };
+  }
 }
