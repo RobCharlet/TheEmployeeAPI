@@ -8,8 +8,8 @@ using TheEmployeeAPI;
 
 namespace TheEmployeeAPI.Migrations
 {
-    [DbContext(typeof(appDbContext))]
-    partial class appDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(AppDbContext))]
+    partial class AppDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

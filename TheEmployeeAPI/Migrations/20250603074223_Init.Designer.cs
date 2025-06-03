@@ -9,7 +9,7 @@ using TheEmployeeAPI;
 
 namespace TheEmployeeAPI.Migrations
 {
-    [DbContext(typeof(appDbContext))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20250603074223_Init")]
     partial class Init
     {

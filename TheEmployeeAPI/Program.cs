@@ -1,40 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using TheEmployeeAPI;
-using TheEmployeeAPI.Abstractions;
+using TheEmployeeAPI; 
 
-var employees = new List<Employee>
-{
-    new Employee {
-        Id = 1,
-        FirstName = "John",
-        LastName = "Doe",
-        Benefits = new List<EmployeeBenefits>
-            {
-                new EmployeeBenefits { BenefitType = BenefitType.Health, Cost = 100 },
-                new EmployeeBenefits { BenefitType = BenefitType.Dental, Cost = 50 }
-            }
-    },
-    new Employee { Id = 2, FirstName = "Jane", LastName = "Doe" }
-};
-
-var employeeRepository = new EmployeeRepository();
-
-foreach (var employee in employees) {
-    employeeRepository.Create(employee);
-}
-    
-    // repo.Create(new Employee
-// {
-//     FirstName = "John",
-//     LastName = "Doe",
-//     Address1 = "123 Main St",
-//     Benefits = new List<EmployeeBenefits>
-//     {
-//         new EmployeeBenefits { BenefitType = BenefitType.Health, Cost = 100 },
-//         new EmployeeBenefits { BenefitType = BenefitType.Dental, Cost = 50 }
-//     }
-// });
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,12 +13,6 @@ builder.Services.AddSwaggerGen(options =>
     // Enable XML comments
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "TheEmployeeAPI.xml"));
 });
-// Register EmployeeRepository service (prevent dependency injection test errors)
-// It's better to not directly use the implementation for our repository and in fact 
-// it's very uncommon to do so. Instead, we should use the interface.
-// <IRepository<Employee> => interface
-// EmployeeRepository => concrete class
-builder.Services.AddSingleton<IRepository<Employee>>(employeeRepository);
 // Standard way to return structured data describing errors from an API.
 // https://datatracker.ietf.org/doc/html/rfc7807
 builder.Services.AddProblemDetails();
@@ -63,11 +24,22 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddHttpContextAccessor();
 // Inject DbContext
-builder.Services.AddDbContext<appDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
 var app = builder.Build();
+// Scope inside of an ASP.NET Core app is typically created 
+// when there's an HTTP request, and we don't have one when 
+// the app is starting. So we'll just create one and dispose 
+// of it after the seeding is complete.
+// Prevents Cannot resolve scoped service 'AppDbContext' from root provider
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    SeedData.MigrateAndSeed(services);
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

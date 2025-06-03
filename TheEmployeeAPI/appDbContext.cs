@@ -1,15 +1,14 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 
 namespace TheEmployeeAPI;
 
-public class appDbContext : DbContext
+public class AppDbContext : DbContext
 {
-  public appDbContext(DbContextOptions<appDbContext> options) : base(options)
+  public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
   {
   }
 
-  protected appDbContext()
+  protected AppDbContext()
   {
   }
 
