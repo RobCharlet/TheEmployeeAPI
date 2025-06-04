@@ -16,7 +16,8 @@ public static class SeedData
 
     if (!context.Employees.Any())
     {
-      context.Employees.AddRange(
+      var employees = new List<Employee>
+      {
         new Employee
         {
           FirstName = "John",
@@ -42,9 +43,57 @@ public static class SeedData
           PhoneNumber = "555-987-6543",
           Email = "jane.smith@example.com"
         }
-      );
+      };
 
+      context.AddRange(employees);
       context.SaveChanges();
+    }
+
+    if (!context.Benefits.Any())
+    {
+      var benefits = new List<Benefit>
+      {
+        new Benefit {
+          Name = "Health",
+          Description = "Medical, dental, and vision coverage",
+          BaseCost = 100.00m
+        },
+        new Benefit {
+          Name = "Dental",
+          Description = "Dental coverage",
+          BaseCost = 50.00m
+        },
+        new Benefit {
+          Name = "Vision",
+          Description = "Vision coverage",
+          BaseCost = 30.00m
+        }
+      };
+
+      context.AddRange(benefits);
+      context.SaveChanges();
+    }
+
+    // Check if employee benefits are already assigned
+    if (!context.EmployeeBenefits.Any())
+    {
+        // Get IDs only to avoid tracking conflicts
+        var healthBenefitId = context.Benefits.Where(b => b.Name == "Health").Select(b => b.Id).Single();
+        var dentalBenefitId = context.Benefits.Where(b => b.Name == "Dental").Select(b => b.Id).Single();
+        
+        var johnId = context.Employees.Where(e => e.FirstName == "John").Select(e => e.Id).Single();
+        var janeId = context.Employees.Where(e => e.FirstName == "Jane").Select(e => e.Id).Single();
+
+        var employeeBenefits = new List<EmployeeBenefit>
+        {
+            new EmployeeBenefit { EmployeeId = johnId, BenefitId = healthBenefitId, CostToEmployee = 100m },
+            new EmployeeBenefit { EmployeeId = johnId, BenefitId = dentalBenefitId },
+            new EmployeeBenefit { EmployeeId = janeId, BenefitId = healthBenefitId, CostToEmployee = 100m },
+            new EmployeeBenefit { EmployeeId = janeId, BenefitId = dentalBenefitId }
+        };
+
+        context.AddRange(employeeBenefits);
+        context.SaveChanges();
     }
   }
 }

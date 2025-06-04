@@ -126,6 +126,46 @@ public class EmployeesController : BaseController
   }
 
   /// <summary>
+  /// Gets the benefits for an employee.
+  /// </summary>
+  /// <param name="employeeId">The ID to get the benefits for.</param>
+  /// <returns>The benefits for that employee.</returns>
+  [HttpGet("{employeeId}/benefits")]
+  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
+  {
+    var employee = await _dbContext.Employees
+      .Include(e => e.Benefits) // get employeeBenefits
+      .ThenInclude(e => e.Benefit) // get benefits from employeeBenefits
+      .SingleOrDefaultAsync(e => e.Id == employeeId);
+
+      /* Equivalent to : 
+      
+      SELECT e.*, eb.Id AS EmployeeBenefitId, eb.CostToEmployee, b.Id AS BenefitId, b.Name, b.Description, b.BaseCost
+      FROM Employees e
+      LEFT JOIN EmployeeBenefits eb ON eb.EmployeeId = e.Id
+      LEFT JOIN Benefits b ON b.Id = eb.BenefitId
+      WHERE e.Id = @employeeId;*/
+
+    if (employee == null)
+    {
+      return NotFound();
+    }
+
+    var benefits = employee.Benefits.Select(b => new GetEmployeeResponseEmployeeBenefit
+    {
+      Id = b.Id,
+      Name = b.Benefit.Name,
+      Description = b.Benefit.Description,
+      Cost = b.CostToEmployee ?? b.Benefit.BaseCost
+    });
+
+    return Ok(benefits);
+  }
+
+  /// <summary>
   /// Updates an employee.
   /// </summary>
   /// <param name="id">The ID of the employee to update.</param>
@@ -166,7 +206,6 @@ public class EmployeesController : BaseController
     existingEmployee.PhoneNumber = updateEmployeeRequest.PhoneNumber;
     existingEmployee.Email = updateEmployeeRequest.Email;
 
-
     try
     {
       // Not needed if EF Core ChangeTracker is not disabled or
@@ -177,15 +216,14 @@ public class EmployeesController : BaseController
 
       await _dbContext.SaveChangesAsync();
       _logger.LogInformation("Employee with ID: {EmployeeId} successfully updated", id);
-      return Ok(existingEmployee);
 
+      return Ok(existingEmployee);
     }
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error occurred while updating employee with ID: {EmployeeId}", id);
         return StatusCode(500, "An error occurred while updating the employee");
     }
-
   }
 
   [HttpDelete("{id}")]

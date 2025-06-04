@@ -17,6 +17,7 @@ public class GetEmployeeResponse
 public class GetEmployeeResponseEmployeeBenefit
 {
     public int Id { get; set; }
-    public int EmployeeId { get; set; }
+    public required string Name { get; set; }
+    public required string Description { get; set; }
     public decimal Cost { get; set; }
 }

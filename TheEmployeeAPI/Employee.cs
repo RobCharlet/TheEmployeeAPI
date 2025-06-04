@@ -11,6 +11,7 @@ public class Employee
     public string? ZipCode { get; set; }
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
+    public List<EmployeeBenefit> Benefits { get; set; } = new List<EmployeeBenefit>();
 }
 
 public class Benefit

@@ -56,8 +56,8 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         HttpClient client = _factory.CreateClient();
         var response = await client.PostAsJsonAsync("/employees", new Employee
         {
-            FirstName = "John",
-            LastName = "Doe",
+            FirstName = "Alice", // Changed from "John"
+            LastName = "Johnson",
             SocialSecurityNumber = "123-45-3445"
         });
 
@@ -209,19 +209,19 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
         
-    // [Fact]
-    // public async Task GetBenefitsForEmployee_ReturnsOkResult()
-    // {
-    //     // Act
-    //     var client = _factory.CreateClient();
-    //     var response = await client.GetAsync($"/employees/{_employeeId}/benefits");
+    [Fact]
+    public async Task GetBenefitsForEmployee_ReturnsOkResult()
+    {
+        // Act
+        var client = _factory.CreateClient();
+        var response = await client.GetAsync($"/employees/{_employeeId}/benefits");
 
-    //     // Assert
-    //     response.EnsureSuccessStatusCode();
+        // Assert
+        response.EnsureSuccessStatusCode();
 
-    //     var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
-    //     Assert.NotNull(benefits);
-    //     // John has two benefits.
-    //     Assert.Equal(2, benefits.Count());
-    // }
+        var benefits = await response.Content.ReadFromJsonAsync<IEnumerable<GetEmployeeResponseEmployeeBenefit>>();
+        Assert.NotNull(benefits);
+        // John has two benefits.
+        Assert.Equal(2, benefits.Count());
+    }
 }
