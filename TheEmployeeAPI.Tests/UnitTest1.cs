@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TheEmployeeAPI.Employees;
@@ -98,12 +99,18 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
             Address1 = "123 Main Smoot"
         });
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Fail($"Failed to update employee: {content}");
+        }
 
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var employee = await db.Employees.FindAsync(1);
         Assert.Equal("123 Main Smoot", employee?.Address1);
+        Assert.Equal(CustomWebApplicationFactory.SystemClock.UtcNow.UtcDateTime, employee!.LastModifiedOn);
+
     }
 
     [Fact]
@@ -148,7 +155,13 @@ public class BasicTests : IClassFixture<CustomWebApplicationFactory>
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(databaseName: "TestDb_UpdateEmployee")
             .Options;
-        using var context = new AppDbContext(options);
+
+        // Create a mock ISystemClock for testing
+        var mockSystemClock = new Mock<ISystemClock>();
+        mockSystemClock.Setup(x => x.UtcNow).Returns(DateTimeOffset.UtcNow);
+
+        // Pass both required parameters to AppDbContext constructor
+        using var context = new AppDbContext(options, mockSystemClock.Object);
 
         var employeeId = 1;
         // Seed the employee

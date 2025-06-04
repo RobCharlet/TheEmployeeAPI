@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Internal;
 using TheEmployeeAPI; 
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +31,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     }
 );
+// Register ISystemClock for dependency injection
+// Production: SystemClock (real time) | Tests: TestSystemClock (fixed time)
+// This allows audit fields to be testable with predictable timestamps
+builder.Services.AddSingleton<ISystemClock, SystemClock>();
 
 var app = builder.Build();
 // Scope inside of an ASP.NET Core app is typically created 
