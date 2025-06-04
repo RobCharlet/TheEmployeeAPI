@@ -1,9 +1,14 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
-using TheEmployeeAPI; 
+using Testcontainers.PostgreSql;
+using TheEmployeeAPI;
+
+var postgreSqlContainer = new PostgreSqlBuilder().Build();
+await postgreSqlContainer.StartAsync();
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -23,10 +28,10 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<FluentValidationFilter>();
 });
 builder.Services.AddHttpContextAccessor();
-// Inject DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     {
-        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+        var conn = postgreSqlContainer.GetConnectionString();
+        options.UseNpgsql(conn);
         // Turn off EF Core ChangeTracker
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     }
@@ -37,6 +42,11 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddSingleton<ISystemClock, SystemClock>();
 
 var app = builder.Build();
+
+//kill container on shutdown
+app.Lifetime.ApplicationStopping.Register(() => postgreSqlContainer.DisposeAsync());
+
+
 // Scope inside of an ASP.NET Core app is typically created 
 // when there's an HTTP request, and we don't have one when 
 // the app is starting. So we'll just create one and dispose 

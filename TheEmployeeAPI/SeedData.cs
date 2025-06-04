@@ -45,7 +45,7 @@ public static class SeedData
         }
       };
 
-      context.AddRange(employees);
+      context.Employees.AddRange(employees);
       context.SaveChanges();
     }
 
@@ -70,7 +70,7 @@ public static class SeedData
         }
       };
 
-      context.AddRange(benefits);
+      context.Benefits.AddRange(benefits);
       context.SaveChanges();
     }
 
@@ -92,7 +92,7 @@ public static class SeedData
             new EmployeeBenefit { EmployeeId = janeId, BenefitId = dentalBenefitId }
         };
 
-        context.AddRange(employeeBenefits);
+        context.EmployeeBenefits.AddRange(employeeBenefits);
         context.SaveChanges();
     }
   }

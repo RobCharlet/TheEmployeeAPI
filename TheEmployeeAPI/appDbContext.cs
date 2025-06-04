@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
 
@@ -11,7 +10,10 @@ public class AppDbContext : DbContext
   // Production: real time | Tests: fixed time (2022-01-01)
   private readonly ISystemClock _systemClock;
 
-  public AppDbContext(DbContextOptions<AppDbContext> options, ISystemClock systemClock) : base(options)
+  public AppDbContext(
+    DbContextOptions<AppDbContext> options, 
+    ISystemClock systemClock
+  ) : base(options)
   {
     _systemClock = systemClock;
   }

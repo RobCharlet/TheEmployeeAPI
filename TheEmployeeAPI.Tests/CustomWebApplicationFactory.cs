@@ -1,11 +1,7 @@
-using System.Data.Common;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
-using TheEmployeeAPI;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
@@ -18,41 +14,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureServices(services =>
         {
-            // Remove production database
-            var dbContextDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            services.Remove(dbContextDescriptor);
-
-            var dbConnectionDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbConnection));
-            services.Remove(dbConnectionDescriptor);
-
-            // Remove production ISystemClock and replace with test version
-            var systemClockDescriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(ISystemClock));
-            if (systemClockDescriptor != null)
-            {
-                services.Remove(systemClockDescriptor);
-            }
-
-            // Register our test SystemClock with fixed time
+            var systemClockDescriptor = services.Single(d => d.ServiceType == typeof(ISystemClock));
+            services.Remove(systemClockDescriptor);
             services.AddSingleton<ISystemClock>(SystemClock);
-
-            // Create in-memory database for tests
-            services.AddSingleton<DbConnection>(container =>
-            {
-                var connection = new SqliteConnection("DataSource=:memory:");
-                connection.Open();
-                return connection;
-            });
-
-            services.AddDbContext<AppDbContext>((container, options) =>
-            {
-                var connection = container.GetRequiredService<DbConnection>();
-                options.UseSqlite(connection);
-                // Enable tracking for tests to see audit field updates
-                options.UseQueryTrackingBehavior(QueryTrackingBehavior.TrackAll);
-            });
         });
     }
 

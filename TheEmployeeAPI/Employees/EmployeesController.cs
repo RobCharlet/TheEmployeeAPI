@@ -226,6 +226,11 @@ public class EmployeesController : BaseController
     }
   }
 
+  /// <summary>
+  /// Delete an employee.
+  /// </summary>
+  /// <param name="id">The ID of the employee to delete.</param>
+  /// <returns></returns>
   [HttpDelete("{id}")]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
