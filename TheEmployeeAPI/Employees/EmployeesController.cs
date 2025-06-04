@@ -35,7 +35,6 @@ public class EmployeesController : BaseController
     // We are constructing the QUERY
     IQueryable<Employee> query = _dbContext.Employees
       // EF Core won't pull subrequested Benefits back unless we specifically request them
-      .Include(e => e.Benefits)
       // Skip previous pages if page > 1
       .Skip((page - 1) * numberOfRecordsPerPage)
       // Take only the needed records
@@ -77,27 +76,6 @@ public class EmployeesController : BaseController
       return NotFound();
     }
     return Ok(EmployeeToGetEmployeeResponse(employee));
-  }
-
-  /// <summary>
-  /// Gets the benefits for an employee.
-  /// </summary>
-  /// <param name="employeeId">The ID to get the benefits for.</param>
-  /// <returns>The single employee record.</returns>
-  [HttpGet("{employeeId}/benefits")]
-  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
-  [ProducesResponseType(StatusCodes.Status404NotFound)]
-  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
-  {
-    var employee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == employeeId);
-
-    if (employee == null)
-    {
-      return NotFound();
-    }
-
-    return Ok(employee.Benefits.Select(BenefitToBenefitResponse));
   }
 
   /// <summary>
@@ -242,18 +220,6 @@ public class EmployeesController : BaseController
       ZipCode = employee.ZipCode,
       PhoneNumber = employee.PhoneNumber,
       Email = employee.Email,
-      Benefits = employee.Benefits.Select(BenefitToBenefitResponse).ToList()
     };
-  }
-
-  private static GetEmployeeResponseEmployeeBenefit BenefitToBenefitResponse(EmployeeBenefits benefit)
-  {
-      return new GetEmployeeResponseEmployeeBenefit
-      {
-          Id = benefit.Id,
-          EmployeeId = benefit.EmployeeId,
-          BenefitType = benefit.BenefitType,
-          Cost = benefit.Cost
-      };
   }
 }

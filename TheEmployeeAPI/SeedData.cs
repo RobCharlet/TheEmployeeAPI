@@ -27,12 +27,7 @@ public static class SeedData
           State = "NY",
           ZipCode = "12345",
           PhoneNumber = "555-123-4567",
-          Email = "john.doe@example.com",
-          Benefits = new List<EmployeeBenefits>
-                    {
-                        new EmployeeBenefits { BenefitType = BenefitType.Health, Cost = 100.00m },
-                        new EmployeeBenefits { BenefitType = BenefitType.Dental, Cost = 50.00m }
-                    }
+          Email = "john.doe@example.com"
         },
         new Employee
         {
@@ -45,12 +40,7 @@ public static class SeedData
           State = "CA",
           ZipCode = "98765",
           PhoneNumber = "555-987-6543",
-          Email = "jane.smith@example.com",
-          Benefits = new List<EmployeeBenefits>
-            {
-                new EmployeeBenefits { BenefitType = BenefitType.Health, Cost = 120.00m },
-                new EmployeeBenefits { BenefitType = BenefitType.Vision, Cost = 30.00m }
-            }
+          Email = "jane.smith@example.com"
         }
       );
 
