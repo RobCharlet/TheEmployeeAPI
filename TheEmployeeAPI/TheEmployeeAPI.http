@@ -1,6 +1,320 @@
 @TheEmployeeAPI_HostAddress = http://localhost:5285
+@userId = 
+@employeeId = 1
 
-GET {{TheEmployeeAPI_HostAddress}}/weatherforecast/
+############################################
+# Authentication & User Management
+############################################
+
+### Get authentication status
+GET {{TheEmployeeAPI_HostAddress}}/api/users/status
 Accept: application/json
 
 ###
+
+### Register a new user
+POST {{TheEmployeeAPI_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "Test123!",
+    "confirmPassword": "Test123!",
+    "firstName": "John",
+    "lastName": "Doe"
+}
+
+###
+
+### Login
+POST {{TheEmployeeAPI_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+    "email": "test@example.com",
+    "password": "Test123!",
+    "rememberMe": false
+}
+
+###
+
+### Debug: Check if user exists
+GET {{TheEmployeeAPI_HostAddress}}/api/users/debug/check-user/test@example.com
+Accept: application/json
+
+###
+
+### Get current user (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/users/current
+Accept: application/json
+
+###
+
+### Get all users (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/users
+Accept: application/json
+
+###
+
+### Get all users with pagination and filters (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/users?page=1&recordsPerPage=10&firstNameContains=John&isActive=true
+Accept: application/json
+
+###
+
+### Get user by ID (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/users/{{userId}}
+Accept: application/json
+
+###
+
+### Update current user profile (requires authentication)
+PUT {{TheEmployeeAPI_HostAddress}}/api/users/profile
+Content-Type: application/json
+
+{
+    "firstName": "Johnny",
+    "lastName": "Updated",
+    "profilePicture": "https://example.com/avatar.jpg"
+}
+
+###
+
+### Update user by ID (requires authentication)
+PUT {{TheEmployeeAPI_HostAddress}}/api/users/{{userId}}
+Content-Type: application/json
+
+{
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "profilePicture": "https://example.com/jane-avatar.jpg"
+}
+
+###
+
+### Change current user password (requires authentication)
+PUT {{TheEmployeeAPI_HostAddress}}/api/users/change-password
+Content-Type: application/json
+
+{
+    "currentPassword": "Test123!",
+    "newPassword": "NewTest456!",
+    "confirmNewPassword": "NewTest456!"
+}
+
+###
+
+### Reset user password by admin (requires authentication)
+PUT {{TheEmployeeAPI_HostAddress}}/api/users/{{userId}}/reset-password
+Content-Type: application/json
+
+{
+    "newPassword": "AdminReset789!",
+    "confirmNewPassword": "AdminReset789!"
+}
+
+###
+
+### Request password reset (forgot password)
+POST {{TheEmployeeAPI_HostAddress}}/api/users/forgot-password
+Content-Type: application/json
+
+{
+    "email": "test@example.com"
+}
+
+###
+
+### Reset password with token (from email)
+POST {{TheEmployeeAPI_HostAddress}}/api/users/reset-password?email=test@example.com&token=RESET_TOKEN_HERE
+Content-Type: application/json
+
+{
+    "newPassword": "ResetPassword123!",
+    "confirmNewPassword": "ResetPassword123!"
+}
+
+###
+
+### Deactivate user (soft delete) (requires authentication)
+DELETE {{TheEmployeeAPI_HostAddress}}/api/users/{{userId}}
+
+###
+
+### Logout (requires authentication)
+POST {{TheEmployeeAPI_HostAddress}}/api/users/logout
+Content-Type: application/json
+
+############################################
+# Employee Management
+############################################
+
+### Get all employees (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/employees
+Accept: application/json
+
+###
+
+### Get all employees with pagination and filters (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/employees?page=1&recordsPerPage=5&firstNameContains=John&lastNameContains=Doe
+Accept: application/json
+
+###
+
+### Get employee by ID (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/employees/{{employeeId}}
+Accept: application/json
+
+###
+
+### Create new employee (requires authentication)
+POST {{TheEmployeeAPI_HostAddress}}/api/employees
+Content-Type: application/json
+
+{
+    "firstName": "Jane",
+    "lastName": "Smith",
+    "email": "jane.smith@example.com",
+    "phoneNumber": "555-0123",
+    "address1": "123 Main St",
+    "address2": "Apt 4B",
+    "city": "Anytown",
+    "state": "CA",
+    "zipCode": "12345",
+    "socialSecurityNumber": "123-45-6789"
+}
+
+###
+
+### Update employee (requires authentication)
+PUT {{TheEmployeeAPI_HostAddress}}/api/employees/{{employeeId}}
+Content-Type: application/json
+
+{
+    "address1": "456 Updated Street",
+    "address2": "Suite 100",
+    "city": "New City",
+    "state": "NY",
+    "zipCode": "67890",
+    "phoneNumber": "555-9999",
+    "email": "jane.updated@example.com"
+}
+
+###
+
+### Get employee benefits (requires authentication)
+GET {{TheEmployeeAPI_HostAddress}}/api/employees/{{employeeId}}/benefits
+Accept: application/json
+
+###
+
+### Delete employee (requires authentication)
+DELETE {{TheEmployeeAPI_HostAddress}}/api/employees/{{employeeId}}
+
+############################################
+# Legacy/Test Endpoints
+############################################
+
+### Old WeatherForecast endpoint (if still exists)
+GET {{TheEmployeeAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+############################################
+# Test Scenarios
+############################################
+
+### Scenario 1: Complete user registration and login flow
+# 1. Register new user
+POST {{TheEmployeeAPI_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+    "email": "newuser@example.com",
+    "password": "SecurePass123!",
+    "confirmPassword": "SecurePass123!",
+    "firstName": "New",
+    "lastName": "User"
+}
+
+###
+
+# 2. Login with new user
+POST {{TheEmployeeAPI_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+    "email": "newuser@example.com",
+    "password": "SecurePass123!",
+    "rememberMe": true
+}
+
+###
+
+# 3. Get current user info
+GET {{TheEmployeeAPI_HostAddress}}/api/users/current
+Accept: application/json
+
+###
+
+# 4. Create employee as authenticated user
+POST {{TheEmployeeAPI_HostAddress}}/api/employees
+Content-Type: application/json
+
+{
+    "firstName": "Test",
+    "lastName": "Employee",
+    "email": "test.employee@company.com",
+    "phoneNumber": "555-TEST",
+    "address1": "123 Test Street",
+    "city": "Test City",
+    "state": "TX",
+    "zipCode": "12345"
+}
+
+###
+
+# 5. Logout
+POST {{TheEmployeeAPI_HostAddress}}/api/users/logout
+Content-Type: application/json
+
+############################################
+# Error Testing
+############################################
+
+### Test validation errors - Invalid email
+POST {{TheEmployeeAPI_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+    "email": "invalid-email",
+    "password": "Test123!",
+    "confirmPassword": "Test123!",
+    "firstName": "Test",
+    "lastName": "User"
+}
+
+###
+
+### Test validation errors - Password mismatch
+POST {{TheEmployeeAPI_HostAddress}}/api/users/register
+Content-Type: application/json
+
+{
+    "email": "test2@example.com",
+    "password": "Test123!",
+    "confirmPassword": "DifferentPassword!",
+    "firstName": "Test",
+    "lastName": "User"
+}
+
+###
+
+### Test unauthorized access - Access employees without login
+GET {{TheEmployeeAPI_HostAddress}}/api/employees
+Accept: application/json
+
+###
+
+### Test not found - Get non-existent employee
+GET {{TheEmployeeAPI_HostAddress}}/api/employees/99999
+Accept: application/json
