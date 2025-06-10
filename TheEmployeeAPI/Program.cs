@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
 using Testcontainers.PostgreSql;
@@ -36,6 +37,43 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     }
 );
+
+// Identity services
+builder.Services
+    .AddIdentity<User, IdentityRole>(options => {
+        // Configure password requirements
+        options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequireNonAlphanumeric = false;
+
+        // Configure lockout
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.MaxFailedAccessAttempts = 6;
+        options.Lockout.AllowedForNewUsers = true;
+
+        // Configure user requirements
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+// Cookie authentication
+builder.Services.ConfigureApplicationCookie(options => {
+   options.LoginPath = "/api/account/login";
+   options.LogoutPath = "/api/account/logout";
+   options.AccessDeniedPath = "/api/account/access-denied";
+   options.ExpireTimeSpan = TimeSpan.FromHours(24);
+   // re-issue a new cookie with a new expiration time any time it processes a request which is more than halfway through the expiration window.
+   options.SlidingExpiration = true;
+   // Indicates whether a cookie is inaccessible by client-side script.
+   options.Cookie.HttpOnly = true;
+   options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+   options.Cookie.SameSite = SameSiteMode.Strict;
+   options.Cookie.Name = "TheEmployeeAPI.Auth";
+});
+
+
 // Register ISystemClock for dependency injection
 // Production: SystemClock (real time) | Tests: TestSystemClock (fixed time)
 // This allows audit fields to be testable with predictable timestamps
@@ -67,6 +105,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+
+// Authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Add controllers to the middleware.
 app.MapControllers();
 

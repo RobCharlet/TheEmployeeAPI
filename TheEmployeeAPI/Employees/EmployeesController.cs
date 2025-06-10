@@ -222,7 +222,7 @@ public class EmployeesController : BaseController
     catch (Exception ex)
     {
       _logger.LogError(ex, "Error occurred while updating employee with ID: {EmployeeId}", id);
-        return StatusCode(500, "An error occurred while updating the employee");
+      return StatusCode(500, "An error occurred while updating the employee");
     }
   }
 

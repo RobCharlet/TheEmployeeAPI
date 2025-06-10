@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Internal;
 
 namespace TheEmployeeAPI;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<User>
 {
   // ISystemClock allows us to control time in tests
   // Instead of DateTime.UtcNow (always changing), we can "freeze" time for testing
@@ -22,10 +23,13 @@ public class AppDbContext : DbContext
   public DbSet<Benefit> Benefits { get; set; }
   public DbSet<EmployeeBenefit> EmployeeBenefits { get; set; }
 
-  // an employee and a benefit can have only 1 line in the EmployeeBenefit table.
+  // An employee and a benefit can have only 1 line in the EmployeeBenefit table.
   // Prevents duplicates.
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
+    // IMPORTANT: Call base configuration first to setup Identity tables
+    base.OnModelCreating(modelBuilder);
+    
     modelBuilder.Entity<EmployeeBenefit>()
       .HasIndex(eb => new { eb.EmployeeId, eb.BenefitId })
       .IsUnique();
