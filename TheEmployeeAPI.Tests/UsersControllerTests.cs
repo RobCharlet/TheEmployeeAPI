@@ -13,7 +13,6 @@ namespace TheEmployeeAPI.Tests;
 
 public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly int _employeeId = 1;
     private readonly CustomWebApplicationFactory _factory;
 
     public UsersControllerTests(CustomWebApplicationFactory factory)
