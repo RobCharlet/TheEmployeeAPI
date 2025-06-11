@@ -60,17 +60,33 @@ builder.Services
 
 // Cookie authentication
 builder.Services.ConfigureApplicationCookie(options => {
-   options.LoginPath = "/api/account/login";
-   options.LogoutPath = "/api/account/logout";
-   options.AccessDeniedPath = "/api/account/access-denied";
-   options.ExpireTimeSpan = TimeSpan.FromHours(24);
-   // re-issue a new cookie with a new expiration time any time it processes a request which is more than halfway through the expiration window.
-   options.SlidingExpiration = true;
-   // Indicates whether a cookie is inaccessible by client-side script.
-   options.Cookie.HttpOnly = true;
-   options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-   options.Cookie.SameSite = SameSiteMode.Strict;
-   options.Cookie.Name = "TheEmployeeAPI.Auth";
+   
+    // For MVC
+    // options.LoginPath = "/api/account/login";
+    // options.LogoutPath = "/api/account/logout";
+    // options.AccessDeniedPath = "/api/account/access-denied";
+
+    //For API
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+    
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    // re-issue a new cookie with a new expiration time any time it processes a request which is more than halfway through the expiration window.
+    options.SlidingExpiration = true;
+    // Indicates whether a cookie is inaccessible by client-side script.
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.Name = "TheEmployeeAPI.Auth";
 });
 
 
@@ -78,6 +94,12 @@ builder.Services.ConfigureApplicationCookie(options => {
 // Production: SystemClock (real time) | Tests: TestSystemClock (fixed time)
 // This allows audit fields to be testable with predictable timestamps
 builder.Services.AddSingleton<ISystemClock, SystemClock>();
+
+builder.Services.Configure<RouteOptions>(options =>
+{
+    //Force Urls low caps (/api/users not /api/Users)
+    options.LowercaseUrls = true;
+});
 
 var app = builder.Build();
 
@@ -95,7 +117,6 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     SeedData.MigrateAndSeed(services);
 }
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

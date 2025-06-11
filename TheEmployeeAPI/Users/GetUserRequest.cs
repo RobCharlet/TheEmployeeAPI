@@ -10,7 +10,7 @@ public class GetUserResponse
     public string? ProfilePicture { get; set; }
     public bool IsActive { get; set; }
     public DateTime? LastLoginDate { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public string DisplayName { get; set; } = string.Empty;
 }

@@ -32,11 +32,10 @@ public class UsersController : BaseController
   /// <param name="request">Registration details</param>
   /// <returns>A link to the user that was created</returns>
   [HttpPost("register")]
-  [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status201Created)]
-  [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+  [ProducesResponseType(StatusCodes.Status201Created)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  // TODO: Checker pourquoi ActionResult et pas IActionResult
-  public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
   {
     var user = new User
     {
@@ -49,7 +48,6 @@ public class UsersController : BaseController
       UpdatedAt = DateTime.UtcNow,
     };
 
-    // Pq request.Password!
     var result = await _userManager.CreateAsync(user, request.Password!);
 
     if (result.Succeeded) {
@@ -58,7 +56,7 @@ public class UsersController : BaseController
 
       await _signInManager.SignInAsync(user, isPersistent: false);
 
-      return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, new AuthResponse {
+      var authResponse = new AuthResponse {
         IsAuthenticated = true,
         UserName = user.UserName,
         Email = user.Email,
@@ -67,12 +65,13 @@ public class UsersController : BaseController
         DisplayName = user.DisplayName,
         LastLoginDate = user.LastLoginDate,
         Message = "User registered successfully" 
-      });
+      };
+
+      return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, authResponse);
     }
 
-    return BadRequest(new AuthResponse
+    return BadRequest(new ErrorResponse
     {
-      IsAuthenticated = false,
       Message = "Registration failed",
       Errors = result.Errors.Select(e => e.Description)
     });
@@ -84,28 +83,25 @@ public class UsersController : BaseController
   /// <param name="request">The user credentials.</param>
   /// <returns>The logged User</returns>
   [HttpPost("login")]
-  [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> Login([FromBody] LoginRequest request)
+  public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
   {
     var user = await _userManager.FindByEmailAsync(request.Email!);
 
     if (user == null) {
       _logger.LogInformation("User not found while login {email}.", request.Email);
-      return BadRequest(new AuthResponse 
+      return BadRequest(new ErrorResponse 
       { 
-          IsAuthenticated = false,
-          // TODO: log unfound email
           Message = "Login failed."
       });
     }
 
     if (!user.IsActive) {
       _logger.LogInformation("User {email} deactivated.", request.Email);
-      return BadRequest(new AuthResponse 
+      return BadRequest(new ErrorResponse 
       { 
-          IsAuthenticated = false,
           Message = "Account is deactivated. Please contact support." 
       });
     }
@@ -120,7 +116,7 @@ public class UsersController : BaseController
     if (result.Succeeded) {
       user.LastLoginDate = DateTime.UtcNow;
 
-      return Ok(new AuthResponse{
+      return new AuthResponse{
         IsAuthenticated = true,
         UserName = user.UserName,
         Email = user.Email,
@@ -129,23 +125,21 @@ public class UsersController : BaseController
         DisplayName = user.DisplayName,
         LastLoginDate = user.LastLoginDate,
         Message = "Login successful" 
-      });
+      };
     }
 
     if (result.IsLockedOut)
     {
       _logger.LogInformation("User {email} account locked.", request.Email);
-      return BadRequest(new AuthResponse 
+      return BadRequest(new ErrorResponse 
       { 
-          IsAuthenticated = false,
           Message = "Account locked out. Please try again later." 
       });
     }
 
     _logger.LogInformation("Invalid email or password while login {email}.", request.Email);
-    return BadRequest(new AuthResponse 
+    return BadRequest(new ErrorResponse 
     { 
-      IsAuthenticated = false,
       Message = "Invalid email or password" 
     });
   }
@@ -157,12 +151,11 @@ public class UsersController : BaseController
   /// <returns>An array of users.</returns>
   [HttpGet]
   [Authorize]
-  [ProducesResponseType(typeof(IEnumerable<GetUserResponse>), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetAllUsers([FromQuery] GetAllUsersRequest? request) 
+  public async Task<ActionResult<IEnumerable<GetUserResponse>>> GetAllUsers([FromQuery] GetAllUsersRequest? request) 
   {
-    //Todo : pq ne pas utiliser dbContext
     int page = request?.Page ?? 1;
     int numberOfRecordsPerPage = request?.RecordsPerPage ?? 10;
 
@@ -197,7 +190,7 @@ public class UsersController : BaseController
       .OrderBy(u => u.Email)
       .ToArrayAsync();
 
-    return Ok(users.Select(UserToGetUserResponse));
+    return Ok(users.Select(UserToGetUserResponse).ToArray());
   }
 
   /// <summary>
@@ -207,11 +200,11 @@ public class UsersController : BaseController
   /// <returns>The single user record.</returns>
   [HttpGet("{id}")]
   [Authorize]
-  [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
-  [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetUserById([FromRoute] string id) {
+  public async Task<ActionResult<GetUserResponse>> GetUserById([FromRoute] string id) {
     var user = await _dbContext.Users.SingleOrDefaultAsync(e => e.Id == id);
 
     if (user == null) {
@@ -227,11 +220,11 @@ public class UsersController : BaseController
   /// <returns>Current user details</returns>
   [HttpGet("current")]
   [Authorize]
-  [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetCurrentUser()
+  public async Task<ActionResult<GetUserResponse>> GetCurrentUser()
   {
       var user = await _userManager.GetUserAsync(User);
       if (user == null)
@@ -249,15 +242,12 @@ public class UsersController : BaseController
   /// <returns>Updated user information</returns>
   [HttpPut("profile")]
   [Authorize]
-  [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
-  [ProducesResponseType(StatusCodes.Status404NotFound)]
-  [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserRequest request)
+  public async Task<ActionResult<GetUserResponse>> UpdateProfile([FromBody] UpdateUserRequest request)
   {
-    // TODO: log update
-    
     var user = await _userManager.GetUserAsync(User);
     if (user == null)
     {
@@ -286,17 +276,16 @@ public class UsersController : BaseController
   /// <param name="request">User update data.</param>
   /// <returns>Updated user information.</returns>
   [HttpPut("{id}")]
-  [Authorize] // Add role-based authorization later if needed
-  [ProducesResponseType(typeof(GetUserResponse), StatusCodes.Status200OK)]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
-  [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
+  [ProducesResponseType(StatusCodes.Status400BadRequest)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserRequest request)
+  public async Task<ActionResult<GetUserResponse>> UpdateUser(string id, [FromBody] UpdateUserRequest request)
   {
     _logger.LogInformation("Updating user with ID: {UserId}", id);
 
-    // Use DbContext with tracking for updates - same pattern as Employees
     var existingUser = await _dbContext.Users
         .AsTracking()
         .SingleOrDefaultAsync(u => u.Id == id);
@@ -326,7 +315,7 @@ public class UsersController : BaseController
   /// <param name="id">The ID of the user to deactivate.</param>
   /// <returns>No content on success.</returns>
   [HttpDelete("{id}")]
-  [Authorize] // Add role-based authorization later if needed
+  [Authorize]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -353,10 +342,10 @@ public class UsersController : BaseController
   /// <returns>Authentication response</returns>
   [HttpPost("logout")]
   [Authorize]
-  [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status401Unauthorized)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> Logout()
+  public async Task<ActionResult<AuthResponse>> Logout()
   {
     await _signInManager.SignOutAsync();
     return Ok(new AuthResponse 
@@ -371,9 +360,9 @@ public class UsersController : BaseController
   /// </summary>
   /// <returns>Authentication status</returns>
   [HttpGet("status")]
-  [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public IActionResult GetAuthStatus()
+  public ActionResult<AuthResponse> GetAuthStatus()
   {
     return Ok(new AuthResponse
     { 
@@ -393,6 +382,9 @@ public class UsersController : BaseController
         LastName = user.LastName,
         ProfilePicture = user.ProfilePicture,
         IsActive = user.IsActive,
+        CreatedAt = user.CreatedAt,
+        UpdatedAt = user.UpdatedAt,
+        LastLoginDate = user.LastLoginDate,
         DisplayName = user.DisplayName
     };
   }
