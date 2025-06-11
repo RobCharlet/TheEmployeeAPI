@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Internal;
@@ -17,6 +18,13 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             var systemClockDescriptor = services.Single(d => d.ServiceType == typeof(ISystemClock));
             services.Remove(systemClockDescriptor);
             services.AddSingleton<ISystemClock>(SystemClock);
+
+            // Modify cookie policy (allow http) for tests purposes
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                //options.Cookie.SameSite = SameSiteMode.Lax;
+            });
         });
     }
 

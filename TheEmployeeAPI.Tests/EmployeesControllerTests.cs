@@ -10,12 +10,12 @@ using TheEmployeeAPI.Employees;
 
 namespace TheEmployeeAPI.Tests;
 
-public class BasicTests : IClassFixture<CustomWebApplicationFactory>
+public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly int _employeeId = 1;
     private readonly CustomWebApplicationFactory _factory;
 
-    public BasicTests(CustomWebApplicationFactory factory)
+    public EmployeesControllerTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }
