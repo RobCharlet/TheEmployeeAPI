@@ -181,6 +181,22 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         Assert.True(problemDetails.Errors.Count > 0);
     }
 
+    [Fact]
+    public async Task DeactivateUser_ReturnsOkResult() {
+        var client = await CreateAuthenticatedClient();
+
+        // Get user ID via current user endpoint
+        var currentUserResponse = await client.GetAsync("/api/users/current");
+        var user = await currentUserResponse.Content.ReadFromJsonAsync<GetUserResponse>();
+
+        var response = await client.DeleteAsync($"/api/users/{user!.Id}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var deactivatedResponse = await client.GetAsync($"/api/users/{user!.Id}");
+        var deactivatedUser = await deactivatedResponse.Content.ReadFromJsonAsync<GetUserResponse>();
+        Assert.False(deactivatedUser!.IsActive);
+    }
+
     // Utils
     private async Task<HttpClient> CreateAuthenticatedClient(string email = "test@test.com")
     {

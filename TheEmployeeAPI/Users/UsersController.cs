@@ -333,7 +333,7 @@ public class UsersController : BaseController
     await _userManager.UpdateAsync(user);
 
     _logger.LogInformation("Disable user with ID: {id}", id);
-    return NoContent();
+    return Ok();
   }
 
   /// <summary>
