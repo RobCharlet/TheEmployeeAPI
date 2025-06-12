@@ -80,7 +80,7 @@ public class UsersController : BaseController
   /// <summary>
   /// Login a user
   /// </summary>
-  /// <param name="request">The user credentials.</param>
+  /// <param name="request">The user credentials</param>
   /// <returns>The logged User</returns>
   [HttpPost("login")]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -145,9 +145,9 @@ public class UsersController : BaseController
   }
 
   /// <summary>
-  /// Get all users with optional filtering and pagination.
+  /// Get all users with optional filtering and pagination
   /// </summary>
-  /// <param name="request">Filtering and pagination parameters.</param>
+  /// <param name="request">Filtering and pagination parameters</param>
   /// <returns>An array of users.</returns>
   [HttpGet]
   [Authorize]
@@ -270,11 +270,11 @@ public class UsersController : BaseController
   }
 
   /// <summary>
-  /// Update a user by ID.
+  /// Update a user by ID
   /// </summary>
-  /// <param name="id">The ID of the user to update.</param>
-  /// <param name="request">User update data.</param>
-  /// <returns>Updated user information.</returns>
+  /// <param name="id">The ID of the user to update</param>
+  /// <param name="request">User update data</param>
+  /// <returns>Updated user information</returns>
   [HttpPut("{id}")]
   [Authorize]
   [ProducesResponseType(StatusCodes.Status200OK)]
@@ -312,8 +312,8 @@ public class UsersController : BaseController
   /// <summary>
   /// Deactivate a user
   /// </summary>
-  /// <param name="id">The ID of the user to deactivate.</param>
-  /// <returns>No content on success.</returns>
+  /// <param name="id">The ID of the user to deactivate</param>
+  /// <returns>No content on success</returns>
   [HttpDelete("{id}")]
   [Authorize]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -369,6 +369,129 @@ public class UsersController : BaseController
         IsAuthenticated = User.Identity?.IsAuthenticated ?? false,
         UserName = User.Identity?.Name,
         Message = "Authentication status retrieved successfully"
+    });
+  }
+
+  /// <summary>
+  /// Change current user password
+  /// </summary>
+  /// <param name="request">Password change data</param>
+  /// <returns>Password change result</returns>
+  [HttpPost("change-password")]
+  [Authorize]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<ActionResult<PasswordResponse>> ChangePassword(
+    [FromBody] ChangePasswordRequest request
+  ) {
+    var user = await _userManager.GetUserAsync(User);
+
+    if (user == null) {
+      return BadRequest(new PasswordResponse {
+        Success = false,
+        Message = "User not found",
+        Errors = ["User not found"]
+      });
+    }
+
+    var result = await _userManager.ChangePasswordAsync(
+      user, 
+      request.CurrentPassword!, 
+      request.NewPassword!
+    );
+
+    if (result.Succeeded) {
+      _logger.LogInformation("Password changed successfully for user {Email}", user.Email);
+      return Ok(new PasswordResponse {
+        Success = true,
+        Message = "Password changed successfully"
+      });
+    }
+
+    _logger.LogInformation("Password change failed for user {Email}", user.Email);
+    return BadRequest(new PasswordResponse {
+      Success = false,
+      Message = "Password change failed",
+      Errors = result.Errors.Select(e => e.Description)
+    });
+  }
+
+  /// <summary>
+  /// Send forgot password email
+  /// </summary>
+  /// <param name="request">Forgot password request</param>
+  /// <returns>Result of forgot password request</returns>
+  [HttpPost("forgot-password")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<ActionResult<PasswordResponse>> ForgotPassword([FromBody] ForgotPasswordRequest request) {
+    var user = await _userManager.FindByEmailAsync(request.Email!);
+    
+    if (user == null || !user.IsActive) {
+      _logger.LogInformation("Forgot password requested for non-existent or inactive user: {Email}", request.Email);
+      return Ok(new PasswordResponse {
+        Success = true,
+        Message = "A password reset link has been sent."
+      });
+    }
+
+    // TODO: Send token by email to user.
+    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+    
+    // Here you would send the email with the token
+    // For now, we'll just log it (in production, integrate with email service)
+    _logger.LogInformation("Password reset token generated for user {Email}: {Token}", user.Email, token);
+    
+    return Ok(new PasswordResponse {
+      Success = true,
+      Message = "A password reset link has been sent."
+    });
+  }
+
+  /// <summary>
+  /// Reset password using token
+  /// </summary>
+  /// <param name="email">User email</param>
+  /// <param name="token">Reset token</param>
+  /// <param name="request">New password data</param>
+  /// <returns>Password reset result</returns>
+  [HttpPost("reset-password")]
+  [ProducesResponseType(StatusCodes.Status200OK)]
+  [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+  public async Task<ActionResult<PasswordResponse>> ResetPassword(
+    [FromQuery] string email,
+    [FromQuery] string token,
+    [FromBody] ResetPasswordRequest request
+  ) {
+    var user = await _userManager.FindByEmailAsync(email);
+    
+    if (user == null || !user.IsActive) {
+      return BadRequest(new PasswordResponse {
+        Success = false,
+        Message = "Invalid request",
+        Errors = ["Invalid email or token"]
+      });
+    }
+
+    var result = await _userManager.ResetPasswordAsync(user, token, request.NewPassword!);
+
+    if (result.Succeeded) {
+      _logger.LogInformation("Password reset successfully for user {Email}", user.Email);
+      return Ok(new PasswordResponse {
+        Success = true,
+        Message = "Password reset successfully"
+      });
+    }
+
+    _logger.LogInformation("Password reset failed for user {Email}", user.Email);
+    return BadRequest(new PasswordResponse {
+      Success = false,
+      Message = "Password reset failed",
+      Errors = result.Errors.Select(e => e.Description)
     });
   }
 

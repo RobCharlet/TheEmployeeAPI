@@ -90,11 +90,14 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task LoginUser_WithValidCredentials_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient();
+        var client = await CreateAuthenticatedClient("login@test.com");
+
+        // Logout automatically connected new user
+        await client.PostAsJsonAsync("/api/users/logout", new {});
 
         var request = new LoginRequest
         {
-            Email = "test@test.com", 
+            Email = "login@test.com",
             Password = "Test123!",
             RememberMe = false
         };
@@ -105,13 +108,13 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.NotNull(authResponse);
         Assert.True(authResponse.IsAuthenticated);
-        Assert.Equal("test@test.com", authResponse.Email);
+        Assert.Equal("login@test.com", authResponse.Email);
     }
 
     [Fact]
     public async Task GetAllUsers_WithAuthentication_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient();
+        var client = await CreateAuthenticatedClient("getallusers@test.com");
 
         // Try immediate request with same client
         var response = await client.GetAsync("/api/users");        
@@ -124,7 +127,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task UpdateProfile_WithAuthentication_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient();
+        var client = await CreateAuthenticatedClient("updateprofile@test.com");
         
         // Get user ID via current user endpoint
         var currentUserResponse = await client.GetAsync("/api/users/current");
@@ -149,7 +152,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task Logout_WithAuthentication_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient();
+        var client = await CreateAuthenticatedClient("logout@test.com");
 
         var response = await client.PostAsJsonAsync("/api/users/logout", new { });
 
@@ -195,6 +198,191 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         var deactivatedResponse = await client.GetAsync($"/api/users/{user!.Id}");
         var deactivatedUser = await deactivatedResponse.Content.ReadFromJsonAsync<GetUserResponse>();
         Assert.False(deactivatedUser!.IsActive);
+    }
+
+    // Password tests
+    [Fact]
+    public async Task ChangePassword_WithValidData_ReturnsOkResult()
+    {
+        var client = await CreateAuthenticatedClient("changepass@test.com");
+
+        var request = new ChangePasswordRequest
+        {
+            CurrentPassword = "Test123!",
+            NewPassword = "NewPassword123!",
+            ConfirmNewPassword = "NewPassword123!"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/change-password", request);
+
+        response.EnsureSuccessStatusCode();
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.True(passwordResponse.Success);
+        Assert.Equal("Password changed successfully", passwordResponse.Message);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithoutAuthentication_Returns401()
+    {
+        var client = _factory.CreateClient();
+
+        var request = new ChangePasswordRequest
+        {
+            CurrentPassword = "Test123!",
+            NewPassword = "NewPassword123!",
+            ConfirmNewPassword = "NewPassword123!"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/change-password", request);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithIncorrectCurrentPassword_ReturnsBadRequest()
+    {
+        var client = await CreateAuthenticatedClient("changepassfail@test.com");
+
+        var request = new ChangePasswordRequest
+        {
+            CurrentPassword = "WrongPassword123!",
+            NewPassword = "NewPassword123!",
+            ConfirmNewPassword = "NewPassword123!"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/change-password", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.False(passwordResponse.Success);
+        Assert.Equal("Password change failed", passwordResponse.Message);
+    }
+
+    [Fact]
+    public async Task ForgotPassword_WithValidEmail_ReturnsOkResult()
+    {
+        var client = _factory.CreateClient();
+        
+        // First register a user
+        await client.PostAsJsonAsync("/api/users/register", new RegisterRequest
+        {
+            Email = "forgot@test.com",
+            Password = "Test123!",
+            ConfirmPassword = "Test123!",
+            FirstName = "Test",
+            LastName = "User"
+        });
+
+        var request = new ForgotPasswordRequest
+        {
+            Email = "forgot@test.com"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/forgot-password", request);
+
+        response.EnsureSuccessStatusCode();
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.True(passwordResponse.Success);
+        Assert.Equal("A password reset link has been sent.", passwordResponse.Message);
+    }
+
+    [Fact]
+    public async Task ForgotPassword_WithNonExistentEmail_ReturnsOkResult()
+    {
+        var client = _factory.CreateClient();
+
+        var request = new ForgotPasswordRequest
+        {
+            Email = "nonexistent@test.com"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/forgot-password", request);
+
+        // Should return OK for security reasons even with non-existent email
+        response.EnsureSuccessStatusCode();
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.True(passwordResponse.Success);
+        Assert.Equal("A password reset link has been sent.", passwordResponse.Message);
+    }
+
+    [Fact]
+    public async Task ResetPassword_WithValidToken_ReturnsOkResult()
+    {
+        var client = _factory.CreateClient();
+        
+        // Register a user first
+        await client.PostAsJsonAsync("/api/users/register", new RegisterRequest
+        {
+            Email = "reset@test.com",
+            Password = "Test123!",
+            ConfirmPassword = "Test123!",
+            FirstName = "Test",
+            LastName = "User"
+        });
+
+        // Get the user from database to generate a real token
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<User>>();
+        var user = await userManager.FindByEmailAsync("reset@test.com");
+        var token = await userManager.GeneratePasswordResetTokenAsync(user!);
+
+        var request = new ResetPasswordRequest
+        {
+            NewPassword = "NewPassword123!",
+            ConfirmNewPassword = "NewPassword123!"
+        };
+
+        var response = await client.PostAsJsonAsync($"/api/users/reset-password?email=reset@test.com&token={Uri.EscapeDataString(token)}", request);
+
+        response.EnsureSuccessStatusCode();
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.True(passwordResponse.Success);
+        Assert.Equal("Password reset successfully", passwordResponse.Message);
+    }
+
+    [Fact]
+    public async Task ResetPassword_WithInvalidToken_ReturnsBadRequest()
+    {
+        var client = _factory.CreateClient();
+
+        var request = new ResetPasswordRequest
+        {
+            NewPassword = "NewPassword123!",
+            ConfirmNewPassword = "NewPassword123!"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/reset-password?email=test@test.com&token=invalid-token", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.False(passwordResponse.Success);
+        Assert.Equal("Invalid request", passwordResponse.Message);
+    }
+
+    [Fact]
+    public async Task ResetPassword_WithNonExistentEmail_ReturnsBadRequest()
+    {
+        var client = _factory.CreateClient();
+
+        var request = new ResetPasswordRequest
+        {
+            NewPassword = "NewPassword123!",
+            ConfirmNewPassword = "NewPassword123!"
+        };
+
+        var response = await client.PostAsJsonAsync("/api/users/reset-password?email=nonexistent@test.com&token=some-token", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
+        Assert.NotNull(passwordResponse);
+        Assert.False(passwordResponse.Success);
+        Assert.Equal("Invalid request", passwordResponse.Message);
     }
 
     // Utils
