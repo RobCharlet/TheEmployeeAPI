@@ -1,12 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Internal;
-using Microsoft.Extensions.Logging;
-using Moq;
 using TheEmployeeAPI.Users;
 
 namespace TheEmployeeAPI.Tests;

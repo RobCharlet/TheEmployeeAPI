@@ -23,11 +23,11 @@ public class EmployeesController : BaseController
   /// </summary>
   /// <returns>An array of all employees.</returns>
   [HttpGet]
-  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponse>), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
   // [FromQuery] will instruct ASP.NET Core to put request parameters to the query
   // Which will allow filtering and pagination.
-  public async Task<IActionResult> GetAllEmployees([FromQuery] GetAllEmployeesRequest? request)
+  public async Task<ActionResult<GetEmployeeResponse>> GetAllEmployees([FromQuery] GetAllEmployeesRequest? request)
   {
     int page = request?.Page ?? 1;
     int numberOfRecordsPerPage = request?.RecordsPerPage ?? 100;
@@ -64,10 +64,10 @@ public class EmployeesController : BaseController
   /// <param name="id">The ID of the employee.</param>
   /// <returns>The single employee record.</returns>
   [HttpGet("{id}")]
-  [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetEmployeeById([FromRoute] int id)
+  public async Task<ActionResult<GetEmployeeResponse>> GetEmployeeById([FromRoute] int id)
   {
     var employee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == id);
 
@@ -84,10 +84,10 @@ public class EmployeesController : BaseController
   /// <param name="employeeRequest">The employee to be created.</param>
   /// <returns>A link to the employee that was created.</returns>
   [HttpPost]
-  [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status201Created)]
+  [ProducesResponseType(StatusCodes.Status201Created)]
   [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> CreateEmployee(
+  public async Task<ActionResult<GetEmployeeResponse>> CreateEmployee(
     [FromBody] CreateEmployeeRequest employeeRequest
   )
   {
@@ -172,11 +172,11 @@ public class EmployeesController : BaseController
   /// <param name="updateEmployeeRequest">The employee data to update.</param>
   /// <returns></returns>
   [HttpPut("{id}")]
-  [ProducesResponseType(typeof(GetEmployeeResponse), StatusCodes.Status200OK)]
+  [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> UpdateEmployee(int id, [FromBody] UpdateEmployeeRequest updateEmployeeRequest)
+  public async Task<ActionResult<GetEmployeeResponse>> UpdateEmployee(int id, [FromBody] UpdateEmployeeRequest updateEmployeeRequest)
   {
     _logger.LogInformation("Updating employee with ID: {EmployeeId}", id);
 
