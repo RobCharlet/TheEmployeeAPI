@@ -7,6 +7,7 @@ using Microsoft.Extensions.Internal;
 using Microsoft.Extensions.Logging;
 using Moq;
 using TheEmployeeAPI.Employees;
+using TheEmployeeAPI.Users;
 
 namespace TheEmployeeAPI.Tests;
 
@@ -54,7 +55,8 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task CreateEmployee_ReturnsCreatedResult()
     {
-        HttpClient client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient("createemployee@test.com");
+
         var response = await client.PostAsJsonAsync("/employees", new Employee
         {
             FirstName = "Alice", // Changed from "John"
@@ -69,7 +71,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     public async Task CreateEmployee_ReturnsBadRequestResult()
     {
         // Arrange
-        HttpClient client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient("createemptyemployee@test.com");
         // Empty object to trigger validation errors
         var invalidEmployee = new CreateEmployeeRequest();
 
@@ -91,7 +93,8 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task UpdateEmployee_ReturnsOkResults()
     {
-        HttpClient client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient("updateemployee@test.com");
+
         var response = await client.PutAsJsonAsync("/employees/1", new Employee
         {
             FirstName = "John",
@@ -131,7 +134,8 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     public async Task UpdateEmployee_ReturnsBadRequestWhenAddress()
     {
         // Arrange
-        var client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient();
+
         var invalidEmployee = new UpdateEmployeeRequest(); // Empty object to trigger validation errors
 
         // Act
@@ -181,7 +185,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
         var result = await controller.UpdateEmployee(employeeId, updateRequest);
 
         // Assert
-        Assert.IsType<OkObjectResult>(result);
+        Assert.IsType<OkObjectResult>(result.Result);
 
         loggerMock.Verify(
             x => x.Log(
@@ -198,7 +202,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task DeleteEmployee_ReturnsNoContentResult()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient();
 
         var newEmployee = new Employee { FirstName = "Meow", LastName = "Garita" };
         using (var scope = _factory.Services.CreateScope())

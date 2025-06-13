@@ -85,7 +85,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task LoginUser_WithValidCredentials_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient("login@test.com");
+        var client = await _factory.CreateAuthenticatedClient("login@test.com");
 
         // Logout automatically connected new user
         await client.PostAsJsonAsync("/api/users/logout", new {});
@@ -109,7 +109,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task GetAllUsers_WithAuthentication_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient("getallusers@test.com");
+        var client = await _factory.CreateAuthenticatedClient("getallusers@test.com");
 
         // Try immediate request with same client
         var response = await client.GetAsync("/api/users");        
@@ -122,7 +122,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task UpdateProfile_WithAuthentication_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient("updateprofile@test.com");
+        var client = await _factory.CreateAuthenticatedClient("updateprofile@test.com");
         
         // Get user ID via current user endpoint
         var currentUserResponse = await client.GetAsync("/api/users/current");
@@ -147,7 +147,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task Logout_WithAuthentication_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient("logout@test.com");
+        var client = await _factory.CreateAuthenticatedClient("logout@test.com");
 
         var response = await client.PostAsJsonAsync("/api/users/logout", new { });
 
@@ -181,7 +181,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
 
     [Fact]
     public async Task DeactivateUser_ReturnsOkResult() {
-        var client = await CreateAuthenticatedClient();
+        var client = await _factory.CreateAuthenticatedClient();
 
         // Get user ID via current user endpoint
         var currentUserResponse = await client.GetAsync("/api/users/current");
@@ -199,7 +199,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task ChangePassword_WithValidData_ReturnsOkResult()
     {
-        var client = await CreateAuthenticatedClient("changepass@test.com");
+        var client = await _factory.CreateAuthenticatedClient("changepass@test.com");
 
         var request = new ChangePasswordRequest
         {
@@ -237,7 +237,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     [Fact]
     public async Task ChangePassword_WithIncorrectCurrentPassword_ReturnsBadRequest()
     {
-        var client = await CreateAuthenticatedClient("changepassfail@test.com");
+        var client = await _factory.CreateAuthenticatedClient("changepassfail@test.com");
 
         var request = new ChangePasswordRequest
         {
@@ -378,22 +378,5 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         Assert.NotNull(passwordResponse);
         Assert.False(passwordResponse.Success);
         Assert.Equal("Invalid request", passwordResponse.Message);
-    }
-
-    // Utils
-    private async Task<HttpClient> CreateAuthenticatedClient(string email = "test@test.com")
-    {
-        var client = _factory.CreateClient();
-
-        await client.PostAsJsonAsync("/api/users/register", new RegisterRequest
-        {
-            Email = email,
-            Password = "Test123!",
-            ConfirmPassword = "Test123!",
-            FirstName = "Test",
-            LastName = "User"
-        });
-
-        return client;
     }
 }

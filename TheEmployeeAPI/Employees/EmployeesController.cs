@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -84,6 +85,7 @@ public class EmployeesController : BaseController
   /// <param name="employeeRequest">The employee to be created.</param>
   /// <returns>A link to the employee that was created.</returns>
   [HttpPost]
+  [Authorize]
   [ProducesResponseType(StatusCodes.Status201Created)]
   [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -172,6 +174,7 @@ public class EmployeesController : BaseController
   /// <param name="updateEmployeeRequest">The employee data to update.</param>
   /// <returns></returns>
   [HttpPut("{id}")]
+  [Authorize]
   [ProducesResponseType(StatusCodes.Status200OK)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ValidationProblemDetails))]
@@ -232,6 +235,7 @@ public class EmployeesController : BaseController
   /// <param name="id">The ID of the employee to delete.</param>
   /// <returns></returns>
   [HttpDelete("{id}")]
+  [Authorize]
   [ProducesResponseType(StatusCodes.Status204NoContent)]
   [ProducesResponseType(StatusCodes.Status404NotFound)]
   [ProducesResponseType(StatusCodes.Status500InternalServerError)]

@@ -19,15 +19,22 @@ builder.Services.AddSwaggerGen(options =>
     // Enable XML comments
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "TheEmployeeAPI.xml"));
 });
+
 // Standard way to return structured data describing errors from an API.
 // https://datatracker.ietf.org/doc/html/rfc7807
 builder.Services.AddProblemDetails();
 // This allows us to request an IValidator<CreateEmployeeRequest> from the DI container and get it, no problemo.
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
-builder.Services.AddControllers(options =>
-{
+
+builder.Services.AddControllersWithViews(options => {
     options.Filters.Add<FluentValidationFilter>();
 });
+// builder.Services.AddControllers(options =>
+// {
+//     options.Filters.Add<FluentValidationFilter>();
+// });
+builder.Services.AddRazorPages();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(options =>
     {
@@ -62,20 +69,28 @@ builder.Services
 builder.Services.ConfigureApplicationCookie(options => {
    
     // For MVC
-    // options.LoginPath = "/api/account/login";
-    // options.LogoutPath = "/api/account/logout";
-    // options.AccessDeniedPath = "/api/account/access-denied";
+    options.LoginPath = "/api/account/login";
+    options.LogoutPath = "/api/account/logout";
+    options.AccessDeniedPath = "/api/account/access-denied";
 
-    //For API
     options.Events.OnRedirectToLogin = context =>
     {
-        context.Response.StatusCode = 401;
+        if (context.Request.Path.StartsWithSegments("/api")) {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
     };
     
     options.Events.OnRedirectToAccessDenied = context =>
     {
-        context.Response.StatusCode = 403;
+        if (context.Request.Path.StartsWithSegments("/api")) {
+            context.Response.StatusCode = 403;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
     };
 
@@ -132,8 +147,15 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// CSS/JS/images
+app.UseStaticFiles();
+
 // Add controllers to the middleware.
-app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages();
 
 app.Run();
 
