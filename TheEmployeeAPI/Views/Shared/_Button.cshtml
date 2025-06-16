@@ -1,0 +1,47 @@
+@model (string Text, string? Type, string? Variant, string? Size, string? Icon, bool Disabled, string? Href, string? Classes)
+@{
+    var type = Model.Type ?? "button";
+    var variant = Model.Variant ?? "primary";
+    var size = Model.Size ?? "md";
+    var isLink = !string.IsNullOrEmpty(Model.Href);
+    
+    var baseClasses = "inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+    
+    var variantClasses = variant switch {
+        "primary" => "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm",
+        "secondary" => "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 border border-gray-300",
+        "danger" => "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-sm",
+        "ghost" => "text-gray-700 hover:bg-gray-100 focus:ring-gray-500",
+        _ => "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm"
+    };
+    
+    var sizeClasses = size switch {
+        "sm" => "px-3 py-1.5 text-sm rounded-md",
+        "md" => "px-4 py-2.5 text-sm rounded-lg",
+        "lg" => "px-6 py-3 text-base rounded-lg",
+        _ => "px-4 py-2.5 text-sm rounded-lg"
+    };
+    
+    var allClasses = $"{baseClasses} {variantClasses} {sizeClasses} {Model.Classes}".Trim();
+}
+
+@if (isLink)
+{
+    <a href="@Model.Href" class="@allClasses">
+        @if (!string.IsNullOrEmpty(Model.Icon))
+        {
+            <i data-lucide="@Model.Icon" class="w-4 h-4 mr-2"></i>
+        }
+        @Model.Text
+    </a>
+}
+else
+{
+    <button type="@type" class="@allClasses" @(Model.Disabled ? "disabled" : "")>
+        @if (!string.IsNullOrEmpty(Model.Icon))
+        {
+            <i data-lucide="@Model.Icon" class="w-4 h-4 mr-2"></i>
+        }
+        @Model.Text
+    </button>
+} 

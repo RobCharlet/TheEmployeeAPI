@@ -1,0 +1,25 @@
+@model (string Title, string Subtitle, object ActionButton)
+
+<div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    @Model.Title
+                </h2>
+                @if (!string.IsNullOrEmpty(Model.Subtitle))
+                {
+                    <p class="mt-1 text-sm text-gray-500">
+                        @Model.Subtitle
+                    </p>
+                }
+            </div>
+            @if (Model.ActionButton != null)
+            {
+                <div class="mt-4 flex md:mt-0 md:ml-4">
+                    @Model.ActionButton
+                </div>
+            }
+        </div>
+    </div>
+</div> 

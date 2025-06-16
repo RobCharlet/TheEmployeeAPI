@@ -1,0 +1,18 @@
+@model (string Title, string? Description)
+
+<div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+    @if (!string.IsNullOrEmpty(Model.Title))
+    {
+        <div class="mb-6 pb-4 border-b border-gray-100">
+            <h3 class="text-lg font-semibold text-gray-900">@Model.Title</h3>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="mt-1 text-sm text-gray-600">@Model.Description</p>
+            }
+        </div>
+    }
+    
+    <div class="space-y-6">
+        @RenderBody()
+    </div>
+</div> 

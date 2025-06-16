@@ -1,7 +1,6 @@
 using FluentValidation;
 
 namespace TheEmployeeAPI;
-
 public class GetAllEmployeesRequest
 {
     public int? Page { get; set; }
@@ -20,4 +19,5 @@ public class GetAllEmployeesRequestValidator : AbstractValidator<GetAllEmployees
             .GreaterThanOrEqualTo(1).WithMessage("You must return at least one record.")
             .LessThanOrEqualTo(100).WithMessage("You cannot return more than 100 records.");
     }
+
 }

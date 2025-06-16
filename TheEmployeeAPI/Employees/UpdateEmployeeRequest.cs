@@ -1,7 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using TheEmployeeAPI;
 
+namespace TheEmployeeAPI;
 public class UpdateEmployeeRequest
 {
     public string? Address1 { get; set; }
@@ -56,7 +56,5 @@ public class UpdateEmployeeRequestValidator : AbstractValidator<UpdateEmployeeRe
         }
 
         return true;
-    }
-    
-    
+    }   
 }

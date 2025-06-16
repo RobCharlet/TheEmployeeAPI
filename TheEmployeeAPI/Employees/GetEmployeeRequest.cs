@@ -1,5 +1,4 @@
-namespace TheEmployeeAPI.Employees;
-
+namespace TheEmployeeAPI;
 public class GetEmployeeResponse
 {
     public required string FirstName { get; set; }
@@ -21,3 +20,4 @@ public class GetEmployeeResponseEmployeeBenefit
     public required string Description { get; set; }
     public decimal Cost { get; set; }
 }
+

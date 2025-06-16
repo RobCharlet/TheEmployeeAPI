@@ -1,0 +1,27 @@
+@if (TempData["Success"] != null)
+{
+    <div class="rounded-md bg-green-50 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i data-lucide="check-circle" class="h-5 w-5 text-green-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-green-800">@TempData["Success"]</p>
+            </div>
+        </div>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="rounded-md bg-red-50 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <i data-lucide="alert-circle" class="h-5 w-5 text-red-400"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-red-800">@TempData["Error"]</p>
+            </div>
+        </div>
+    </div>
+} 

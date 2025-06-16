@@ -1,6 +1,5 @@
 using FluentValidation;
 using FluentValidation.Results;
-using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -47,7 +46,10 @@ public class FluentValidationFilter : IAsyncActionFilter
           if (!validationResult.IsValid)
           {
             // If validation fails, add errors to ModelState
-            validationResult.AddToModelState(context.ModelState);
+            foreach (var error in validationResult.Errors)
+            {
+                context.ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
+            }
             // Create a ProblemDetails response for validation errors
             var problemDetails = _problemDetailsFactory.CreateValidationProblemDetails(context.HttpContext, context.ModelState);
             // Return a 400 BadRequest with the problem details and stop action execution

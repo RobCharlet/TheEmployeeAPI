@@ -1,5 +1,7 @@
 using FluentValidation;
 
+namespace TheEmployeeAPI;
+
 public class CreateEmployeeRequest
 {
     public string? FirstName { get; set; }

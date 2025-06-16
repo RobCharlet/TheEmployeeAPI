@@ -1,0 +1,86 @@
+@{
+    ViewData["Title"] = "Accueil";
+}
+
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-primary to-secondary">
+    <div class="max-w-7xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h1 class="text-4xl font-extrabold text-white sm:text-5xl md:text-6xl">
+                Gestion des Employés
+            </h1>
+            <p class="mt-3 max-w-md mx-auto text-base text-blue-100 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
+                Gérez vos employés facilement avec notre interface moderne et intuitive
+            </p>
+            <div class="mt-8">
+                <a href="@Url.Action("Index", "Employees")" 
+                   class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 transition-colors duration-200 shadow-lg hover:shadow-xl">
+                    Voir les Employés
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+                Fonctionnalités
+            </h2>
+            <p class="mt-4 text-lg text-gray-600">
+                Tout ce dont vous avez besoin pour gérer vos employés efficacement
+            </p>
+        </div>
+
+        <div class="mt-12 grid grid-cols-1 gap-8 md:grid-cols-4">
+            <div class="text-center group md:col-start-2">
+                <div class="flex items-center justify-center h-16 w-16 rounded-md bg-primary text-white mx-auto group-hover:bg-secondary transition-colors duration-200">
+                    <i data-lucide="file-text" class="h-8 w-8"></i>
+                </div>
+                <h3 class="mt-6 text-lg font-medium text-gray-900">Gestion Complète</h3>
+                <p class="mt-2 text-base text-gray-600">
+                    Créez, modifiez, consultez et supprimez les informations de vos employés
+                </p>
+            </div>
+            <div class="text-center group">
+                <div class="flex items-center justify-center h-16 w-16 rounded-md bg-primary text-white mx-auto group-hover:bg-secondary transition-colors duration-200">
+                    <i data-lucide="lock" class="h-8 w-8"></i>
+                </div>
+                <h3 class="mt-6 text-lg font-medium text-gray-900">Sécurisé</h3>
+                <p class="mt-2 text-base text-gray-600">
+                    Authentification et autorisation intégrées pour protéger vos données
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="bg-gray-50 py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-extrabold text-gray-900">
+                Interface Moderne
+            </h2>
+            <p class="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
+                Une application web responsive construite avec les dernières technologies
+            </p>
+        </div>
+        <div class="mt-12 grid grid-cols-1 gap-8 sm:grid-cols-3">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-primary">ASP.NET</div>
+                <div class="mt-2 text-sm text-gray-600">Framework</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-primary">Razor Pages</div>
+                <div class="mt-2 text-sm text-gray-600">Interface</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold text-primary">Tailwind CSS</div>
+                <div class="mt-2 text-sm text-gray-600">Styles</div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,175 @@
+@model TheEmployeeAPI.Employee
+@{
+    ViewData["Title"] = "Détails de l'employé";
+}
+
+<!-- Page Header -->
+<div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
+    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">@Model.FirstName @Model.LastName</h1>
+                <p class="mt-2 text-gray-600">Détails de l'employé</p>
+            </div>
+            <div class="flex space-x-3">
+                <a asp-action="Index" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border border-gray-300 px-4 py-2.5 text-sm rounded-lg">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
+                    Retour à la liste
+                </a>
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 px-4 py-2.5 text-sm rounded-lg">
+                    <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
+                    Modifier
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    @await Html.PartialAsync("_AlertMessage")
+    
+    <div class="space-y-8">
+        <!-- Employee Info -->
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Informations de l'employé</h3>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Prénom:</span>
+                    <span class="ml-2 text-sm text-gray-900">@Model.FirstName</span>
+                </div>
+                <div>
+                    <span class="text-sm font-medium text-gray-500">Nom:</span>
+                    <span class="ml-2 text-sm text-gray-900">@Model.LastName</span>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.SocialSecurityNumber))
+                {
+                    <div class="sm:col-span-2">
+                        <span class="text-sm font-medium text-gray-500">NSS:</span>
+                        <span class="ml-2 text-sm text-gray-900">@Model.SocialSecurityNumber</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="mb-6 pb-4 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">Informations de contact</h3>
+                <p class="mt-1 text-sm text-gray-600">Comment contacter cet employé</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <span class="block text-sm font-medium text-gray-900">Email</span>
+                    <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email" class="text-blue-600 hover:text-blue-800">@Model.Email</a>
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">N/A</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <span class="block text-sm font-medium text-gray-900">Téléphone</span>
+                    <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                        @if (!string.IsNullOrEmpty(Model.PhoneNumber))
+                        {
+                            <a href="tel:@Model.PhoneNumber" class="text-blue-600 hover:text-blue-800">@Model.PhoneNumber</a>
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">N/A</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="mb-6 pb-4 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">Adresse</h3>
+                <p class="mt-1 text-sm text-gray-600">Adresse de résidence de l'employé</p>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <span class="block text-sm font-medium text-gray-900">Adresse ligne 1</span>
+                    <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                        @if (!string.IsNullOrEmpty(Model.Address1))
+                        {
+                            @Model.Address1
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">N/A</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <span class="block text-sm font-medium text-gray-900">Adresse ligne 2</span>
+                    <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                        @if (!string.IsNullOrEmpty(Model.Address2))
+                        {
+                            @Model.Address2
+                        }
+                        else
+                        {
+                            <span class="text-gray-400">N/A</span>
+                        }
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <span class="block text-sm font-medium text-gray-900">Ville</span>
+                        <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                            @if (!string.IsNullOrEmpty(Model.City))
+                            {
+                                @Model.City
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">N/A</span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <span class="block text-sm font-medium text-gray-900">État/Province</span>
+                        <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                            @if (!string.IsNullOrEmpty(Model.State))
+                            {
+                                @Model.State
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">N/A</span>
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <span class="block text-sm font-medium text-gray-900">Code postal</span>
+                        <div class="block w-full rounded-lg border-gray-300 bg-gray-50 px-3 py-2.5 text-gray-900 sm:text-sm">
+                            @if (!string.IsNullOrEmpty(Model.ZipCode))
+                            {
+                                @Model.ZipCode
+                            }
+                            else
+                            {
+                                <span class="text-gray-400">N/A</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

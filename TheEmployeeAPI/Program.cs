@@ -26,14 +26,11 @@ builder.Services.AddProblemDetails();
 // This allows us to request an IValidator<CreateEmployeeRequest> from the DI container and get it, no problemo.
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+
+// Activate MVC with view support.
 builder.Services.AddControllersWithViews(options => {
     options.Filters.Add<FluentValidationFilter>();
 });
-// builder.Services.AddControllers(options =>
-// {
-//     options.Filters.Add<FluentValidationFilter>();
-// });
-builder.Services.AddRazorPages();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -114,6 +111,7 @@ builder.Services.Configure<RouteOptions>(options =>
 {
     //Force Urls low caps (/api/users not /api/Users)
     options.LowercaseUrls = true;
+    options.LowercaseQueryStrings = true;
 });
 
 var app = builder.Build();
@@ -142,7 +140,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
 // Authentication and authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
@@ -153,9 +150,11 @@ app.UseStaticFiles();
 // Add controllers to the middleware.
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    // Default route
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
-app.MapRazorPages();
+// app.MapRazorPages();
 
 app.Run();
 

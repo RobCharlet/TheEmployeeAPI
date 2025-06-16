@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-gray-50">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Employee Management</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#6366f1'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full">
+    @{
+        // Get current controller url
+        var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    }
+    
+    <div class="min-h-full">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16">
+                    <div class="flex">
+                        <div class="flex-shrink-0 flex items-center">
+                            <a href="/" class="text-2xl font-bold text-primary hover:text-secondary transition-colors cursor-pointer">
+                                Employee Management
+                            </a>
+                        </div>
+                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                            <!-- Home Link -->
+                            <a href="/" 
+                               class="@(currentController == "Home" ? "border-primary text-primary bg-primary bg-opacity-5" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700") inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors cursor-pointer">
+                                Accueil
+                            </a>
+                            <!-- Employees Link -->
+                            <a href="/employees"
+                               class="@(currentController == "Employees" ? "border-primary text-primary bg-primary bg-opacity-5" : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700") inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors cursor-pointer">
+                                Employés
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="sm:hidden flex items-center">
+                        <button type="button" onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 cursor-pointer">
+                            <i data-lucide="menu" class="h-6 w-6"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div class="sm:hidden hidden" id="mobile-menu">
+                <div class="pt-2 pb-3 space-y-1">
+                    <a href="/" class="@(currentController == "Home" ? "bg-primary border-primary text-white" : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700") block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer">
+                        Accueil
+                    </a>
+                    <a href="/employees" class="@(currentController == "Employees" ? "bg-primary border-primary text-white" : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700") block pl-3 pr-4 py-2 border-l-4 text-base font-medium cursor-pointer">
+                        Employés
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <main class="flex-1">
+            @RenderBody()
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white mt-12">
+            <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                <div class="text-center">
+                    <p>&copy; 2025 Employee Management. Tous droits réservés.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+    
+    <!-- Initialize Lucide -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons()
+        })
+    </script>
+</body>
+</html> 
