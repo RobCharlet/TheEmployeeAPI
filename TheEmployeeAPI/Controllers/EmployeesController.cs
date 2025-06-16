@@ -59,19 +59,27 @@ public class EmployeesController : Controller
 
   public async Task<IActionResult> Details([FromRoute] int id)
   {
-    var employee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == id);
+    var employee = await _dbContext.Employees
+    // Left join on EmployeeBenefits
+    .Include(e => e.EmployeeBenefits)
+    .ThenInclude(eb => eb.Benefit)
+    .SingleOrDefaultAsync(e => e.Id == id);
 
     if (employee == null)
     {
       return NotFound();
     }
+    
     return View(employee);
   }
 
   [HttpGet]
-  public IActionResult Create()
+  public async Task<IActionResult> Create()
   {
-      return View();
+    var benefits = await _dbContext.Benefits.ToListAsync();
+    ViewBag.Benefits = benefits;
+      
+    return View();
   }
 
   [HttpPost]
@@ -92,15 +100,30 @@ public class EmployeesController : Controller
         State = model.State,
         ZipCode = model.ZipCode,
         PhoneNumber = model.PhoneNumber,
-        Email = model.Email
+        Email = model.Email,
       };
 
       _dbContext.Employees.Add(newEmployee);
       await _dbContext.SaveChangesAsync();
 
+      // Add employee benefits
+      foreach(var benefitId in model.SelectedBenefitsIds) {
+        var employeeBenefit = new EmployeeBenefit {
+          EmployeeId = newEmployee.Id,
+          BenefitId = benefitId,
+        };
+        _dbContext.EmployeeBenefits.Add(employeeBenefit);
+      }
+      await _dbContext.SaveChangesAsync();
+
       TempData["Success"] = "Employé créé avec succès !";
       return RedirectToAction(nameof(Index));
     }
+
+    // Load benefit listing
+    var benefits = await _dbContext.Benefits.ToListAsync();
+    ViewBag.Benefits = benefits;
+
     return View(model);
   }
 
@@ -116,7 +139,7 @@ public class EmployeesController : Controller
   public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
   {
     var employee = await _dbContext.Employees
-      .Include(e => e.Benefits) // get employeeBenefits
+      .Include(e => e.EmployeeBenefits) // get employeeBenefits
       .ThenInclude(e => e.Benefit) // get benefits from employeeBenefits
       .SingleOrDefaultAsync(e => e.Id == employeeId);
 
@@ -133,7 +156,7 @@ public class EmployeesController : Controller
       return NotFound();
     }
 
-    var benefits = employee.Benefits.Select(b => new GetEmployeeResponseEmployeeBenefit
+    var benefits = employee.EmployeeBenefits.Select(b => new GetEmployeeResponseEmployeeBenefit
     {
       Id = b.Id,
       Name = b.Benefit.Name,
@@ -171,6 +194,10 @@ public class EmployeesController : Controller
     
     // Send full employee to the view display
     ViewBag.Employee = employee;
+
+    // Send benefits to the view display
+    var benefits = await _dbContext.Benefits.ToListAsync();
+    ViewBag.Benefits = benefits;
     
     // Return updateEmployeeRequest model to the view
     return View(updateEmployeeRequest);
@@ -182,16 +209,17 @@ public class EmployeesController : Controller
   [ValidateAntiForgeryToken]
   public async Task<IActionResult> Edit ([FromRoute] int id, UpdateEmployeeRequest model)
   {
-    if (ModelState.IsValid) {
-      var existingEmployee = await _dbContext.Employees
-        .AsTracking() // EF Core tracking disabled in program.cs
+    // The id from the route is the source of truth.
+    var existingEmployee = await _dbContext.Employees
+        .Include(e => e.EmployeeBenefits) // include existing benefits
         .SingleOrDefaultAsync(e => e.Id == id);
 
-      if (existingEmployee == null)
-      {
+    if (existingEmployee == null)
+    {
         return NotFound();
-      }
+    }
 
+    if (ModelState.IsValid) {
       // Update existing employee fields
       existingEmployee.Address1 = model.Address1;
       existingEmployee.Address2 = model.Address2;
@@ -201,6 +229,17 @@ public class EmployeesController : Controller
       existingEmployee.PhoneNumber = model.PhoneNumber;
       existingEmployee.Email = model.Email;
 
+      // Remove old benefits
+      _dbContext.EmployeeBenefits.RemoveRange(existingEmployee.EmployeeBenefits);
+
+      // Add new employee benefits
+      foreach(var benefitId in model.SelectedBenefitsIds) {
+        var employeeBenefit = new EmployeeBenefit {
+          EmployeeId = existingEmployee.Id,
+          BenefitId = benefitId,
+        };
+        _dbContext.EmployeeBenefits.Add(employeeBenefit);
+      }
       await _dbContext.SaveChangesAsync();
 
       TempData["Success"] = "Employé modifié avec succès !";
@@ -210,6 +249,10 @@ public class EmployeesController : Controller
 
     var employee = await _dbContext.Employees.SingleOrDefaultAsync(e => e.Id == id);
     ViewBag.Employee = employee;
+
+    var benefits = await _dbContext.Benefits.ToListAsync();
+    ViewBag.Benefits = benefits;
+
     return View(model);
   }
 

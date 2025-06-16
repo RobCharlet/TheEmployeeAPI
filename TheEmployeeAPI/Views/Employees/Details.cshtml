@@ -171,5 +171,44 @@
                 </div>
             </div>
         </div>
+
+         <!-- Benefits -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="mb-6 pb-4 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">Avantages sociaux</h3>
+                <p class="mt-1 text-sm text-gray-600">Les avantages assignés à cet employé</p>
+            </div>
+            
+            <div class="space-y-4">
+                @if (Model.EmployeeBenefits != null && Model.EmployeeBenefits.Any())
+                {
+                    @foreach (var employeeBenefit in Model.EmployeeBenefits)
+                    {
+                        <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h4 class="text-sm font-medium text-gray-900">@employeeBenefit.Benefit.Name</h4>
+                                    <p class="text-sm text-gray-600 mt-1">@employeeBenefit.Benefit.Description</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-medium text-gray-900">Coût de base: @employeeBenefit.Benefit.BaseCost.ToString("C")</div>
+                                    @if (employeeBenefit.CostToEmployee.HasValue)
+                                    {
+                                        <div class="text-sm text-green-600 font-medium">Coût employé: @employeeBenefit.CostToEmployee.Value.ToString("C")</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-8">
+                        <i data-lucide="gift" class="w-12 h-12 text-gray-400 mx-auto mb-4"></i>
+                        <p class="text-gray-500">Aucun avantage social assigné</p>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>

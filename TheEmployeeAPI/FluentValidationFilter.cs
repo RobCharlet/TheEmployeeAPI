@@ -50,12 +50,6 @@ public class FluentValidationFilter : IAsyncActionFilter
             {
                 context.ModelState.AddModelError(error.PropertyName, error.ErrorMessage);
             }
-            // Create a ProblemDetails response for validation errors
-            var problemDetails = _problemDetailsFactory.CreateValidationProblemDetails(context.HttpContext, context.ModelState);
-            // Return a 400 BadRequest with the problem details and stop action execution
-            context.Result = new BadRequestObjectResult(problemDetails);
-
-            return;
           }
         }
       }

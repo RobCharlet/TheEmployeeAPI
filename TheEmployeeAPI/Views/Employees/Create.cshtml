@@ -135,6 +135,39 @@
             </div>
         </div>
 
+        <!-- Benefits -->
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="mb-6 pb-4 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">Avantages sociaux</h3>
+                <p class="mt-1 text-sm text-gray-600">Sélectionnez les avantages pour cet employé</p>
+            </div>
+            
+            <div class="space-y-4">
+                @if (ViewBag.Benefits != null)
+                {
+                    @foreach (var benefit in (List<Benefit>)ViewBag.Benefits)
+                    {
+                        <div class="flex items-start space-x-3">
+                            <input type="checkbox" 
+                                   name="SelectedBenefitsIds" 
+                                   value="@benefit.Id" 
+                                   id="benefit_@benefit.Id"
+                                   class="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                            <label for="benefit_@benefit.Id" class="flex-1">
+                                <div class="text-sm font-medium text-gray-900">@benefit.Name</div>
+                                <div class="text-sm text-gray-600">@benefit.Description</div>
+                                <div class="text-sm text-green-600 font-medium">Coût: @benefit.BaseCost.ToString("C")</div>
+                            </label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-gray-500 text-sm">Aucun avantage disponible</p>
+                }
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
             <a asp-action="Index" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border border-gray-300 px-4 py-2.5 text-sm rounded-lg">

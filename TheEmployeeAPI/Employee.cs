@@ -12,7 +12,7 @@ namespace TheEmployeeAPI {
         public string? ZipCode { get; set; }
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
-        public List<EmployeeBenefit> Benefits { get; set; } = new List<EmployeeBenefit>();
+        public List<EmployeeBenefit> EmployeeBenefits { get; set; } = new List<EmployeeBenefit>();
     }
 
     public abstract class AuditableEntity
