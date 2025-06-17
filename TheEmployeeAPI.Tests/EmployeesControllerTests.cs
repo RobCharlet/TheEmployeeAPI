@@ -32,7 +32,8 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task GetAllEmployees_WithFilter_ReturnsOneResult()
     {
-        var client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient("employeefiltertest@test.com");
+
         var response = await client.GetAsync("/employees?FirstNameContains=John");
 
         response.EnsureSuccessStatusCode();
@@ -44,7 +45,8 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task GetEmployeeById_ReturnsOkResult()
     {
-        HttpClient client = _factory.CreateClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient("getbyemployeebyid@test.com");
+
         var response = await client.GetAsync("/employees/details/1");
 
         response.EnsureSuccessStatusCode();
@@ -121,50 +123,6 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
         Assert.Equal(2, employees.Count);
     }
 
-    private async Task<string> GetAntiForgeryTokenFromPage(HttpClient client, string url)
-    {
-        var response = await client.GetAsync(url);
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        
-        var tokenMatch = System.Text.RegularExpressions.Regex.Match(
-            content, 
-            @"<input name=""__RequestVerificationToken"" type=""hidden"" value=""([^""]+)"""
-        );
-        
-        return tokenMatch.Success ? tokenMatch.Groups[1].Value : "";
-    }
-
-    private async Task<Employee> CreateTestEmployee(string firstName = "Test", string lastName = "Employee")
-    {
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        
-        var employee = new Employee
-        {
-            FirstName = firstName,
-            LastName = lastName,
-            SocialSecurityNumber = $"{Random.Shared.Next(100, 999)}-{Random.Shared.Next(10, 99)}-{Random.Shared.Next(1000, 9999)}",
-            Address1 = "15 rue de la Paix",
-            City = "Paris",
-            State = "Île-de-France",
-            ZipCode = "75001",
-            PhoneNumber = "01 23 45 67 89",
-            Email = $"{firstName.ToLower()}.{lastName.ToLower()}@test.com"
-        };
-        
-        db.Employees.Add(employee);
-        await db.SaveChangesAsync();
-        return employee;
-    }
-
-    private async Task<FormUrlEncodedContent> CreateFormDataWithToken(HttpClient client, string tokenUrl, Dictionary<string, string> formFields)
-    {
-        var token = await GetAntiForgeryTokenFromPage(client, tokenUrl);
-        formFields["__RequestVerificationToken"] = token;
-        return new FormUrlEncodedContent(formFields);
-    }
-
     [Fact]
     public async Task UpdateEmployee_ReturnsNotFoundForNonExistentEmployee()
     {
@@ -182,7 +140,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
         HttpClient client = await _factory.CreateAuthenticatedClient("updateinvalid@test.com");
 
         // Act
-        var formData = await CreateFormDataWithToken(client, $"/employees/edit/{_employeeId}", new Dictionary<string, string>
+        var formData = await TestHelpers.CreateFormDataWithToken(client, $"/employees/edit/{_employeeId}", new Dictionary<string, string>
         {
             {"Address1", ""}, // This is required
             {"City", "Lyon"},
@@ -210,7 +168,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
         var testEmployee = await CreateTestEmployee();
 
         // Act
-        var formData = await CreateFormDataWithToken(client, $"/employees/edit/{testEmployee.Id}", new Dictionary<string, string>
+        var formData = await TestHelpers.CreateFormDataWithToken(client, $"/employees/edit/{testEmployee.Id}", new Dictionary<string, string>
         {
             {"Address1", "42 avenue des Champs-Élysées"},
             {"Address2", "Appartement 3B"},
@@ -257,7 +215,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
         var newEmployee = await CreateTestEmployee("Jean", "Claude");
 
         // Act
-        var formData = await CreateFormDataWithToken(client, "/employees", new Dictionary<string, string>());
+        var formData = await TestHelpers.CreateFormDataWithToken(client, "/employees", new Dictionary<string, string>());
         var response = await client.PostAsync($"/employees/delete/{newEmployee.Id}", formData);
 
         // Assert
@@ -277,5 +235,28 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
         var response = await client.DeleteAsync("/employees/99999");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private async Task<Employee> CreateTestEmployee(string firstName = "Test", string lastName = "Employee")
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        var employee = new Employee
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            SocialSecurityNumber = $"{Random.Shared.Next(100, 999)}-{Random.Shared.Next(10, 99)}-{Random.Shared.Next(1000, 9999)}",
+            Address1 = "15 rue de la Paix",
+            City = "Paris",
+            State = "Île-de-France",
+            ZipCode = "75001",
+            PhoneNumber = "01 23 45 67 89",
+            Email = $"{firstName.ToLower()}.{lastName.ToLower()}@test.com"
+        };
+        
+        db.Employees.Add(employee);
+        await db.SaveChangesAsync();
+        return employee;
     }
 }

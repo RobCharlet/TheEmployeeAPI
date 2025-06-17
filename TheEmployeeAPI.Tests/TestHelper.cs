@@ -30,5 +30,30 @@ namespace TheEmployeeAPI.Tests
 
         return client;
     }
+
+    public static async Task<FormUrlEncodedContent> CreateFormDataWithToken(
+      HttpClient client, 
+      string tokenUrl, 
+      Dictionary<string, string> formFields
+    )
+    {
+        var token = await GetAntiForgeryTokenFromPage(client, tokenUrl);
+        formFields["__RequestVerificationToken"] = token;
+        return new FormUrlEncodedContent(formFields);
+    }
+
+    private static async Task<string> GetAntiForgeryTokenFromPage(HttpClient client, string url)
+    {
+        var response = await client.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        
+        var tokenMatch = System.Text.RegularExpressions.Regex.Match(
+            content, 
+            @"<input name=""__RequestVerificationToken"" type=""hidden"" value=""([^""]+)"""
+        );
+        
+        return tokenMatch.Success ? tokenMatch.Groups[1].Value : "";
+    }
   }
 }
