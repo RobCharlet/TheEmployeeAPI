@@ -23,10 +23,10 @@ public class CreateEmployeeRequestValidator : AbstractValidator<CreateEmployeeRe
     {
         RuleFor(x => x.FirstName)
             .NotEmpty()
-            .WithMessage("First name is required.");
+            .WithMessage("Le prénom est obligatoire.");
 
         RuleFor(x => x.LastName)
             .NotEmpty()
-            .WithMessage("Last name is required.");
+            .WithMessage("Le nom est obligatoire.");
     }
 }

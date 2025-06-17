@@ -127,46 +127,6 @@ public class EmployeesController : Controller
     return View(model);
   }
 
-  /// <summary>
-  /// Gets the benefits for an employee.
-  /// </summary>
-  /// <param name="employeeId">The ID to get the benefits for.</param>
-  /// <returns>The benefits for that employee.</returns>
-  [HttpGet("{employeeId}/benefits")]
-  [ProducesResponseType(typeof(IEnumerable<GetEmployeeResponseEmployeeBenefit>), StatusCodes.Status200OK)]
-  [ProducesResponseType(StatusCodes.Status404NotFound)]
-  [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-  public async Task<IActionResult> GetBenefitsForEmployee(int employeeId)
-  {
-    var employee = await _dbContext.Employees
-      .Include(e => e.EmployeeBenefits) // get employeeBenefits
-      .ThenInclude(e => e.Benefit) // get benefits from employeeBenefits
-      .SingleOrDefaultAsync(e => e.Id == employeeId);
-
-      /* Equivalent to : 
-      
-      SELECT e.*, eb.Id AS EmployeeBenefitId, eb.CostToEmployee, b.Id AS BenefitId, b.Name, b.Description, b.BaseCost
-      FROM Employees e
-      LEFT JOIN EmployeeBenefits eb ON eb.EmployeeId = e.Id
-      LEFT JOIN Benefits b ON b.Id = eb.BenefitId
-      WHERE e.Id = @employeeId;*/
-
-    if (employee == null)
-    {
-      return NotFound();
-    }
-
-    var benefits = employee.EmployeeBenefits.Select(b => new GetEmployeeResponseEmployeeBenefit
-    {
-      Id = b.Id,
-      Name = b.Benefit.Name,
-      Description = b.Benefit.Description,
-      Cost = b.CostToEmployee ?? b.Benefit.BaseCost
-    });
-
-    return Ok(benefits);
-  }
-
   // /Employees/Edit/{id}
   [HttpGet]
   //[Authorize]
@@ -211,6 +171,7 @@ public class EmployeesController : Controller
   {
     // The id from the route is the source of truth.
     var existingEmployee = await _dbContext.Employees
+        .AsTracking()
         .Include(e => e.EmployeeBenefits) // include existing benefits
         .SingleOrDefaultAsync(e => e.Id == id);
 
@@ -229,6 +190,8 @@ public class EmployeesController : Controller
       existingEmployee.PhoneNumber = model.PhoneNumber;
       existingEmployee.Email = model.Email;
 
+      await _dbContext.SaveChangesAsync();
+
       // Remove old benefits
       _dbContext.EmployeeBenefits.RemoveRange(existingEmployee.EmployeeBenefits);
 
@@ -240,6 +203,7 @@ public class EmployeesController : Controller
         };
         _dbContext.EmployeeBenefits.Add(employeeBenefit);
       }
+
       await _dbContext.SaveChangesAsync();
 
       TempData["Success"] = "Employé modifié avec succès !";

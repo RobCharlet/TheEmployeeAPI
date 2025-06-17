@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
 using TheEmployeeAPI.Users;
 
 namespace TheEmployeeAPI.Tests
@@ -9,10 +10,14 @@ namespace TheEmployeeAPI.Tests
     public static async Task<HttpClient> CreateAuthenticatedClient(
       // Extension method, allow 
       this CustomWebApplicationFactory factory,
-      string email = "test@test.com"
+      string email = "test@test.com",
+      bool allowAutoRedirect = true
       )
     {
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = allowAutoRedirect
+        });
 
         await client.PostAsJsonAsync("/api/users/register", new RegisterRequest
         {

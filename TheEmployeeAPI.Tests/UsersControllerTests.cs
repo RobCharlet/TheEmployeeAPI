@@ -1,11 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using TheEmployeeAPI.Users;
 
 namespace TheEmployeeAPI.Tests;
 
+// Forces all tests in this collection to run sequentially instead of in parallel
+// This prevents conflicts when sharing resources like database containers, web servers, and network ports
+[Collection("Sequential")]
 public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
@@ -13,6 +15,24 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     public UsersControllerTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
+    }
+
+    private async Task<User> CreateTestUser(string email = "test@example.com", string firstName = "Test", string lastName = "User")
+    {
+        using var scope = _factory.Services.CreateScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<User>>();
+        
+        var user = new User
+        {
+            Email = email,
+            UserName = email,
+            FirstName = firstName,
+            LastName = lastName,
+            EmailConfirmed = true
+        };
+        
+        await userManager.CreateAsync(user, "Test123!");
+        return user;
     }
 
     // Unauthorized tests
@@ -111,7 +131,6 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         var client = await _factory.CreateAuthenticatedClient("getallusers@test.com");
 
-        // Try immediate request with same client
         var response = await client.GetAsync("/api/users");        
         
         response.EnsureSuccessStatusCode();
@@ -174,13 +193,17 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         var response = await client.PostAsJsonAsync("/api/users/register", invalidRequest);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        var problemDetails = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
-        Assert.NotNull(problemDetails);
-        Assert.True(problemDetails.Errors.Count > 0);
+        var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+        Assert.NotNull(errorResponse);
+        Assert.NotNull(errorResponse.Errors);
+        Assert.True(errorResponse.Errors.Any());
+        Assert.Contains("Passwords must be at least 8 characters.", errorResponse.Errors);
+        Assert.Contains("Passwords must have at least one uppercase ('A'-'Z').", errorResponse.Errors);
     }
 
     [Fact]
-    public async Task DeactivateUser_ReturnsOkResult() {
+    public async Task DeactivateUser_ReturnsOkResult() 
+    {
         var client = await _factory.CreateAuthenticatedClient();
 
         // Get user ID via current user endpoint
@@ -188,11 +211,12 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
         var user = await currentUserResponse.Content.ReadFromJsonAsync<GetUserResponse>();
 
         var response = await client.DeleteAsync($"/api/users/{user!.Id}");
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.EnsureSuccessStatusCode();
 
         var deactivatedResponse = await client.GetAsync($"/api/users/{user!.Id}");
         var deactivatedUser = await deactivatedResponse.Content.ReadFromJsonAsync<GetUserResponse>();
-        Assert.False(deactivatedUser!.IsActive);
+        Assert.NotNull(deactivatedUser);
+        Assert.False(deactivatedUser.IsActive);
     }
 
     // Password tests
@@ -259,16 +283,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     public async Task ForgotPassword_WithValidEmail_ReturnsOkResult()
     {
         var client = _factory.CreateClient();
-        
-        // First register a user
-        await client.PostAsJsonAsync("/api/users/register", new RegisterRequest
-        {
-            Email = "forgot@test.com",
-            Password = "Test123!",
-            ConfirmPassword = "Test123!",
-            FirstName = "Test",
-            LastName = "User"
-        });
+        await CreateTestUser("forgot@test.com");
 
         var request = new ForgotPasswordRequest
         {
@@ -309,7 +324,7 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
     {
         var client = _factory.CreateClient();
         
-        // Register a user first
+        // Register user through API to ensure proper setup
         await client.PostAsJsonAsync("/api/users/register", new RegisterRequest
         {
             Email = "reset@test.com",
@@ -331,7 +346,9 @@ public class UsersControllerTests : IClassFixture<CustomWebApplicationFactory>
             ConfirmNewPassword = "NewPassword123!"
         };
 
-        var response = await client.PostAsJsonAsync($"/api/users/reset-password?email=reset@test.com&token={Uri.EscapeDataString(token)}", request);
+        // Use proper URL encoding for the token
+        var encodedToken = Uri.EscapeDataString(token);
+        var response = await client.PostAsJsonAsync($"/api/users/reset-password?email=reset@test.com&token={encodedToken}", request);
 
         response.EnsureSuccessStatusCode();
         var passwordResponse = await response.Content.ReadFromJsonAsync<PasswordResponse>();
