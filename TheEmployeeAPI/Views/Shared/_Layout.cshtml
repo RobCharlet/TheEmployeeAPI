@@ -53,6 +53,27 @@
                         </div>
                     </div>
 
+                    <!-- User menu -->
+                    <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="relative ml-3 flex items-center space-x-4">
+                                <span class="text-sm text-gray-700">Bonjour, @User.Identity.Name</span>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                        Déconnexion
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="bg-primary hover:bg-secondary text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Connexion
+                            </a>
+                        }
+                    </div>
+
                     <!-- Mobile menu button -->
                     <div class="sm:hidden flex items-center">
                         <button type="button" onclick="toggleMobileMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 cursor-pointer">

@@ -15,12 +15,7 @@
                 </p>
             </div>
             <div class="mt-4 flex md:mt-0 md:ml-4">
-                <a href="/employees/create">
-                    <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                        <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i>
-                        Ajouter un employé
-                    </button>
-                </a>
+                @await Html.PartialAsync("_Button", ("Ajouter un employé", "button", "primary", "md", "user-plus", false, Url.Action("Create"), (string?)null))
             </div>
         </div>
     </div>
@@ -29,7 +24,7 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     @await Html.PartialAsync("_AlertMessage")
 
-        <!-- Search Form -->
+    <!-- Search Form -->
     <div class="bg-white shadow rounded-lg mb-6">
         <div class="px-4 py-5 sm:p-6">
             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Rechercher des employés</h3>
@@ -42,13 +37,8 @@
                         @await Html.PartialAsync("_Input", ("LastNameContains", "Nom", "text", "Rechercher par nom...", false, ViewBag.LastNameFilter as string, (string?)null))
                     </div>
                     <div class="flex items-end space-x-3">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                            <i data-lucide="search" class="w-4 h-4 mr-2"></i>
-                            Rechercher
-                        </button>
-                        <a href="@Url.Action("Index")" class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-                            Effacer
-                        </a>
+                        @await Html.PartialAsync("_Button", ("Rechercher", "submit", "primary", "md", "search", false, (string?)null, (string?)null))
+                        @await Html.PartialAsync("_Button", ("Effacer", "button", "secondary", "md", (string?)null, false, Url.Action("Index"), (string?)null))
                     </div>
                 </div>
             </form>

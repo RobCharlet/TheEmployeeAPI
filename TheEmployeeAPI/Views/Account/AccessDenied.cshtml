@@ -1,0 +1,24 @@
+@{
+    ViewData["Title"] = "Accès refusé";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto text-center">
+        <div class="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
+            <div class="text-red-500 mb-6">
+                <svg class="mx-auto h-24 w-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            
+            <h1 class="text-6xl font-bold text-red-500 mb-4">403</h1>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Accès refusé</h2>
+            <p class="text-gray-600 mb-8">Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
+            
+            <div class="space-x-4">
+                @await Html.PartialAsync("_Button", ("Se connecter", "button", "primary", "md", "log-in", false, Url.Action("Login", "Account"), (string?)null))
+                @await Html.PartialAsync("_Button", ("Retour à l'accueil", "button", "secondary", "md", "home", false, Url.Action("Index", "Home"), (string?)null))
+            </div>
+        </div>
+    </div>
+</div> 

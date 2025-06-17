@@ -1,0 +1,42 @@
+@model TheEmployeeAPI.Users.LoginRequest
+@{
+    ViewData["Title"] = "Connexion";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto">
+        @await Html.PartialAsync("_AlertMessage")
+        
+        <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Connexion</h2>
+                <p class="mt-2 text-sm text-gray-600">Connectez-vous à votre compte</p>
+            </div>
+
+            <form method="post">
+                <div asp-validation-summary="ModelOnly" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md mb-4"></div>
+                
+                <div class="mb-4">
+                    @await Html.PartialAsync("_Input", ("Email", "Email", "email", "votre@email.com", true, Model?.Email, (string?)null))
+                </div>
+
+                <div class="mb-4">
+                    @await Html.PartialAsync("_Input", ("Password", "Mot de passe", "password", "Votre mot de passe", true, (string?)null, (string?)null))
+                </div>
+
+                <div class="mb-6">
+                    <label class="flex items-center">
+                        <input asp-for="RememberMe" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500" type="checkbox" />
+                        <span class="ml-2 text-sm text-gray-700">Se souvenir de moi</span>
+                    </label>
+                </div>
+
+                @await Html.PartialAsync("_Button", ("Se connecter", "submit", "primary", "md", "log-in", false, (string?)null, "w-full"))
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+} 

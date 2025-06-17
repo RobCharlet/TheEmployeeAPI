@@ -66,9 +66,9 @@ builder.Services
 builder.Services.ConfigureApplicationCookie(options => {
    
     // For MVC
-    options.LoginPath = "/api/account/login";
-    options.LogoutPath = "/api/account/logout";
-    options.AccessDeniedPath = "/api/account/access-denied";
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 
     options.Events.OnRedirectToLogin = context =>
     {
@@ -128,7 +128,7 @@ app.Lifetime.ApplicationStopping.Register(() => postgreSqlContainer.DisposeAsync
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    SeedData.MigrateAndSeed(services);
+    await SeedData.MigrateAndSeed(services);
 }
 
 // Configure the HTTP request pipeline.

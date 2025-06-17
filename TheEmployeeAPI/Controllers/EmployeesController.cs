@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TheEmployeeAPI;
 
 namespace TheEmployeeAPI.Controllers;
 
+[Authorize]
 public class EmployeesController : Controller
 {
   private readonly ILogger<EmployeesController> _logger;
@@ -79,7 +79,7 @@ public class EmployeesController : Controller
     var benefits = await _dbContext.Benefits.ToListAsync();
     ViewBag.Benefits = benefits;
       
-    return View();
+    return View(new CreateEmployeeRequest());
   }
 
   [HttpPost]

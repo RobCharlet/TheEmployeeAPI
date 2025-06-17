@@ -5,17 +5,20 @@
 }
 
 <!-- Page Header -->
-<div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
-    <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Modifier @employee?.FirstName @employee?.LastName</h1>
-                <p class="mt-2 text-gray-600">Modifiez les informations de l'employé</p>
+<div class="bg-white shadow">
+    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    Modifier @employee?.FirstName @employee?.LastName
+                </h2>
+                <p class="mt-1 text-sm text-gray-500">
+                    Modifiez les informations de l'employé
+                </p>
             </div>
-            <a asp-action="Details" asp-route-id="@employee?.Id" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border border-gray-300 px-4 py-2.5 text-sm rounded-lg">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
-                Retour aux détails
-            </a>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                @await Html.PartialAsync("_Button", ("Retour aux détails", "button", "secondary", "md", "arrow-left", false, Url.Action("Details", new { id = employee?.Id }), (string?)null))
+            </div>
         </div>
     </div>
 </div>
@@ -60,18 +63,11 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="space-y-2">
-                    <label asp-for="Email" class="block text-sm font-medium text-gray-900">Email</label>
-                    <input asp-for="Email" type="email" placeholder="exemple@entreprise.com" 
-                           class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                    <span asp-validation-for="Email" class="text-sm text-red-600"></span>
+                <div>
+                    @await Html.PartialAsync("_Input", ("Email", "Email", "email", "exemple@entreprise.com", false, Model.Email, (string?)null))
                 </div>
-                
-                <div class="space-y-2">
-                    <label asp-for="PhoneNumber" class="block text-sm font-medium text-gray-900">Téléphone</label>
-                    <input asp-for="PhoneNumber" type="tel" placeholder="+33 1 23 45 67 89" 
-                           class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                    <span asp-validation-for="PhoneNumber" class="text-sm text-red-600"></span>
+                <div>
+                    @await Html.PartialAsync("_Input", ("PhoneNumber", "Téléphone", "tel", "+33 1 23 45 67 89", false, Model.PhoneNumber, (string?)null))
                 </div>
             </div>
         </div>
@@ -84,40 +80,22 @@
             </div>
             
             <div class="space-y-6">
-                <div class="space-y-2">
-                    <label asp-for="Address1" class="block text-sm font-medium text-gray-900">Adresse ligne 1</label>
-                    <input asp-for="Address1" placeholder="123 Rue Example" 
-                           class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                    <span asp-validation-for="Address1" class="text-sm text-red-600"></span>
+                <div>
+                    @await Html.PartialAsync("_Input", ("Address1", "Adresse ligne 1", "text", "123 Rue Example", false, Model.Address1, (string?)null))
                 </div>
-                
-                <div class="space-y-2">
-                    <label asp-for="Address2" class="block text-sm font-medium text-gray-900">Adresse ligne 2</label>
-                    <input asp-for="Address2" placeholder="Appartement, suite, etc." 
-                           class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                    <span asp-validation-for="Address2" class="text-sm text-red-600"></span>
+                <div>
+                    @await Html.PartialAsync("_Input", ("Address2", "Adresse ligne 2", "text", "Appartement, suite, etc.", false, Model.Address2, (string?)null))
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="space-y-2">
-                        <label asp-for="City" class="block text-sm font-medium text-gray-900">Ville</label>
-                        <input asp-for="City" placeholder="Paris" 
-                               class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                        <span asp-validation-for="City" class="text-sm text-red-600"></span>
+                    <div>
+                        @await Html.PartialAsync("_Input", ("City", "Ville", "text", "Paris", false, Model.City, (string?)null))
                     </div>
-                    
-                    <div class="space-y-2">
-                        <label asp-for="State" class="block text-sm font-medium text-gray-900">État/Province</label>
-                        <input asp-for="State" placeholder="Île-de-France" 
-                               class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                        <span asp-validation-for="State" class="text-sm text-red-600"></span>
+                    <div>
+                        @await Html.PartialAsync("_Input", ("State", "État/Province", "text", "Île-de-France", false, Model.State, (string?)null))
                     </div>
-                    
-                    <div class="space-y-2">
-                        <label asp-for="ZipCode" class="block text-sm font-medium text-gray-900">Code postal</label>
-                        <input asp-for="ZipCode" placeholder="75001" 
-                               class="block w-full rounded-lg border-gray-300 bg-white px-3 py-2.5 text-gray-900 placeholder-gray-400 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm transition-all duration-200 hover:border-gray-400" />
-                        <span asp-validation-for="ZipCode" class="text-sm text-red-600"></span>
+                    <div>
+                        @await Html.PartialAsync("_Input", ("ZipCode", "Code postal", "text", "75001", false, Model.ZipCode, (string?)null))
                     </div>
                 </div>
             </div>
@@ -158,13 +136,8 @@
 
         <!-- Actions -->
         <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-            <a asp-action="Details" asp-route-id="@employee?.Id" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 border border-gray-300 px-4 py-2.5 text-sm rounded-lg">
-                Annuler
-            </a>
-            <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 px-4 py-2.5 text-sm rounded-lg">
-                <i data-lucide="edit" class="w-4 h-4 mr-2"></i>
-                Sauvegarder les modifications
-            </button>
+            @await Html.PartialAsync("_Button", ("Annuler", "button", "secondary", "md", (string?)null, false, Url.Action("Details", new { id = employee?.Id }), (string?)null))
+            @await Html.PartialAsync("_Button", ("Sauvegarder les modifications", "submit", "primary", "md", "save", false, (string?)null, (string?)null))
         </div>
     </form>
 </div>

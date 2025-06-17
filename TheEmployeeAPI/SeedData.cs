@@ -1,12 +1,14 @@
 using System;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace TheEmployeeAPI;
 
 public static class SeedData
 {
-  public static void MigrateAndSeed(IServiceProvider serviceProvider)
+  public static async Task MigrateAndSeed(IServiceProvider serviceProvider)
   {
+    var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
     var context = serviceProvider.GetRequiredService<AppDbContext>();
     // Ensure the database is created and all migrations are applied before seeding data.
     // This is necessary for integration tests because the test runner may use a fresh or in-memory database
@@ -94,6 +96,22 @@ public static class SeedData
 
         context.EmployeeBenefits.AddRange(employeeBenefits);
         context.SaveChanges();
+    }
+
+    if (!userManager.Users.Any())
+    {
+      var user = new User
+      {
+        UserName = "admin",
+        Email = "admin@admin.com",
+        FirstName = "Admin",
+        LastName = "Istrateur",
+        IsActive = true,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+      };
+
+      var result = await userManager.CreateAsync(user, "Admin123!");
     }
   }
 }
