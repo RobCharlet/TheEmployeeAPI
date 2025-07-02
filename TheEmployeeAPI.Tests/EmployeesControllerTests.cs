@@ -203,6 +203,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     public async Task DeleteEmployee_ReturnsNoContentResult()
     {
         HttpClient client = await _factory.CreateAuthenticatedClient();
+        int newEmployeeId;
 
         var newEmployee = new Employee { FirstName = "Meow", LastName = "Garita" };
         using (var scope = _factory.Services.CreateScope())
@@ -210,9 +211,10 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Employees.Add(newEmployee);
             await db.SaveChangesAsync();
+            newEmployeeId = newEmployee.Id;
         }
 
-        var response = await client.DeleteAsync($"/employees/{newEmployee.Id}");
+        var response = await client.DeleteAsync($"/employees/{newEmployeeId}");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
