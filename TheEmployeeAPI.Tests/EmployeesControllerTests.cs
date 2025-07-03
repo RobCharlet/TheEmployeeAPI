@@ -134,7 +134,9 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     public async Task UpdateEmployee_ReturnsBadRequestWhenAddress()
     {
         // Arrange
-        HttpClient client = await _factory.CreateAuthenticatedClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient(
+            "updateemployeebadrequest@test.com"
+        );
 
         var invalidEmployee = new UpdateEmployeeRequest(); // Empty object to trigger validation errors
 
@@ -175,11 +177,16 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
             FirstName = "Test",
             LastName = "Mock"
         });
+        
         context.SaveChanges();
 
         var controller = new EmployeesController(loggerMock.Object, context);
 
-        var updateRequest = new UpdateEmployeeRequest { City = "East Jarod", State = "Maryland", };
+        var updateRequest = new UpdateEmployeeRequest
+        {
+            City = "East Jarod", 
+            State = "Maryland",
+        };
 
         // Act
         var result = await controller.UpdateEmployee(employeeId, updateRequest);
@@ -202,10 +209,19 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
     [Fact]
     public async Task DeleteEmployee_ReturnsNoContentResult()
     {
-        HttpClient client = await _factory.CreateAuthenticatedClient();
+        HttpClient client = await _factory.CreateAuthenticatedClient(
+            "deleteemployee@test.com"
+        );
+        
         int newEmployeeId;
 
-        var newEmployee = new Employee { FirstName = "Meow", LastName = "Garita" };
+        var newEmployee = new Employee 
+        { 
+            FirstName = "Meow", 
+            LastName = "Garita",
+            SocialSecurityNumber = $"123-45-3449"
+        };
+
         using (var scope = _factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -213,7 +229,7 @@ public class EmployeesControllerTests : IClassFixture<CustomWebApplicationFactor
             await db.SaveChangesAsync();
             newEmployeeId = newEmployee.Id;
         }
-
+        
         var response = await client.DeleteAsync($"/employees/{newEmployeeId}");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
